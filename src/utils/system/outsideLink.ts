@@ -1,3 +1,6 @@
+import { Browser } from '@capacitor/browser';
+import { isCapacitorAndroid } from '../../platform/runtime';
+
 // src/utils/system/outsideLink.ts
 // Opening a page outside the app, the one place that knows how: the desktop app hands the address
 // to the system browser (a plain link would load it inside the app's own window), the web build
@@ -14,6 +17,11 @@ export const opensThroughDesktopApp = (): boolean => Boolean(window.electron?.op
 export const openOutsideLink = async (url: string): Promise<void> => {
     if (window.electron?.openExternalUrl) {
         await window.electron.openExternalUrl(url);
+        return;
+    }
+    // Android App 里 window.open 会把页面开在 WebView 里且回不来，交给系统的 Custom Tab。
+    if (isCapacitorAndroid()) {
+        await Browser.open({ url });
         return;
     }
     window.open(url, '_blank', 'noopener,noreferrer');

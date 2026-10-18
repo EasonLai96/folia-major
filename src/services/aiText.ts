@@ -2,6 +2,7 @@ import { DualTheme } from "../types";
 import { applyStoredAnimationIntensityToDualTheme } from "./themePreferences";
 import { sanitizeDualTheme } from "./themeSanitizer";
 import { getWebAiProvider, type WebAiProvider } from "./runtimeConfig";
+import { appServerFetch, resolveAppApiPath } from "./appServer";
 
 // src/services/aiText.ts
 
@@ -32,7 +33,7 @@ const THEME_ROUTES: Record<WebAiProvider, string> = {
 };
 
 /** Anything that is not a service of the table goes to Gemini's route. */
-const themeRoute = (provider: WebAiProvider) => THEME_ROUTES[provider] ?? THEME_ROUTES.gemini;
+const themeRoute = (provider: WebAiProvider) => resolveAppApiPath(THEME_ROUTES[provider] ?? THEME_ROUTES.gemini);
 
 /** Our web route for the segmentation ask. The route picks the service itself. */
 const SEGMENTATION_ROUTE = '/api/segment-lyrics';
@@ -65,7 +66,7 @@ export const generateThemeFromLyrics = async (
       return sanitizeDualTheme(dualTheme);
     }
 
-    const response = await fetch(themeRoute(getWebAiProvider()), {
+    const response = await appServerFetch(themeRoute(getWebAiProvider()), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ export const generateObsThemeFromLyrics = async (
   aiConfig: ObsAiConfig,
   signal?: AbortSignal,
 ): Promise<DualTheme> => {
-  const response = await fetch(themeRoute(aiConfig.provider), {
+  const response = await appServerFetch(themeRoute(aiConfig.provider), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ lyricsText, ...(options ?? {}) }),
@@ -146,7 +147,7 @@ export const requestLyricSegmentation = async (lines: string[], signal?: AbortSi
     return bridge.segmentLyrics(lines);
   }
 
-  const response = await fetch(SEGMENTATION_ROUTE, {
+  const response = await appServerFetch(resolveAppApiPath(SEGMENTATION_ROUTE), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ lines }),

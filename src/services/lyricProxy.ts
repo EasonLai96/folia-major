@@ -1,3 +1,5 @@
+import { resolveAppApiPath } from './appServer';
+
 // src/services/lyricProxy.ts
 
 /**
@@ -20,7 +22,7 @@ type LyricProxyBridge = NonNullable<Window['electron']>['fetchLyricProxy'];
 
 /** The relay's address on the web for one target URL. */
 export const lyricProxyWebUrl = (targetUrl: string): string => (
-    `/api/lyric-proxy?url=${encodeURIComponent(targetUrl)}`
+    resolveAppApiPath(`/api/lyric-proxy?url=${encodeURIComponent(targetUrl)}`)
 );
 
 /**

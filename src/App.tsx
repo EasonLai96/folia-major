@@ -92,6 +92,7 @@ import { useLocalLibraryAutoScan } from './hooks/useLocalLibraryAutoScan';
 import { useElectronVideoExportController } from './hooks/useElectronVideoExportController';
 import { useElectronWindowPlaybackHandoff } from './components/app/playback/restore/useElectronWindowPlaybackHandoff';
 import { useMediaSessionBridge } from './hooks/useMediaSessionBridge';
+import { useCapacitorShell } from './hooks/useCapacitorShell';
 import { usePlayerChromeAutoHide } from './hooks/usePlayerChromeAutoHide';
 import { useIdleCursorHide } from './hooks/useIdleCursorHide';
 import { usePlaybackAudioBridge } from './components/app/playback/bridges/usePlaybackAudioBridge';
@@ -658,6 +659,8 @@ export default function App() {
     // Folium: publish what is on screen to the main process (runtime snapshot
     // for main-side mods and the export service).
     useFoliumHostBridge(theme, isDaylight);
+    // Android App：系统栏与返回键（浏览器和桌面版不做事）。
+    useCapacitorShell(isDaylight);
 
     useThemeQuickEditorContext({
         aiTheme,

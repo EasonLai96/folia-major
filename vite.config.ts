@@ -202,8 +202,11 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
     .digest('hex')
     .slice(0, 12)}`;
 
+  // Android App（Capacitor）：页面从 APK 内置的 dist/ 载入，用相对路径，不注册 PWA Service Worker。
+  const isCapacitorBuild = process.env.FOLIA_BUILD_TARGET === 'capacitor';
+
   return {
-    base: process.env.ELECTRON === 'true' ? './' : '/',
+    base: process.env.ELECTRON === 'true' || isCapacitorBuild ? './' : '/',
     worker: {
       format: 'es'
     },
@@ -270,7 +273,7 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
       traditionalLocalePlugin(),
       icuFoliaDataPlugin(),
       react(),
-      VitePWA({
+      ...(isCapacitorBuild ? [] : [VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
         devOptions: {
@@ -312,7 +315,7 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
             }
           ]
         }
-      })
+      })]),
     ],
     define: {
       '__COMMIT_HASH__': JSON.stringify(commitHash + commitSuffix),

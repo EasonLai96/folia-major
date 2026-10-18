@@ -1,4 +1,5 @@
 import { option, type SettingsGroupDef } from '../../kit';
+import { isCapacitorAndroid } from '../../../../../platform/runtime';
 
 // src/components/modal/settings/pages/integration/options.ts
 // The groups and options of the 连接与集成 page, declared apart from the page so the files that
@@ -10,6 +11,7 @@ export const STREAMING: SettingsGroupDef = { id: 'streaming', titleKey: 'options
 
 
 export const O = {
+    appServer: option(SERVICES, 'appServer', 'options.appServer', { available: isCapacitorAndroid }),
     navidrome: option(SERVICES, 'navidrome', 'navidrome.enable'),
     navidromeUrl: option(SERVICES, 'navidromeServerUrl', 'navidrome.serverUrl'),
     navidromeUsername: option(SERVICES, 'navidromeUsername', 'navidrome.username'),

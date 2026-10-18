@@ -5,6 +5,7 @@ import { useAudioSettingsStore } from '../../../../stores/useAudioSettingsStore'
 import { usePlayerChromeSettingsStore } from '../../../../stores/usePlayerChromeSettingsStore';
 import { useStageSettingsStore } from '../../../../stores/useStageSettingsStore';
 import { Button, CopyValue, Group, Reveal, Row, Status, Toggle, Value, type SettingsOptionDef } from '../kit';
+import AppServerRows from './integration/AppServerRows';
 import NavidromeRows from './integration/NavidromeRows';
 import { O, SERVICES, STREAMING } from './integration/options';
 import { DesktopStageRows, WebStageRows } from './integration/StageModeRows';
@@ -39,6 +40,7 @@ const IntegrationPage: React.FC = () => {
     return (
         <>
             <Group def={SERVICES}>
+                <AppServerRows />
                 <NavidromeRows />
                 <SyncServerRows />
                 {isElectron && (

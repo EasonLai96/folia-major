@@ -5,6 +5,8 @@ import type { PersonalFmRequestOptions, ProviderSongAvailability } from '../../.
 import { withLoginRequestLimit } from '../login/loginRequestLimit';
 import { withOnlineRequestLimit } from '../failure/onlineRequestLimit';
 import { errorFields } from '../../../utils/errorText';
+import { appServerRoute } from '../../appServer';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 type UnavailableSongReplacement = {
   replacementSong: SongResult;
@@ -37,7 +39,8 @@ const getConfiguredApiBase = () => {
     return process.env.VITE_NETEASE_API_BASE;
   }
 
-  return null;
+  // Android App：从设置里的 Folia 服务器派生（services/appServer.ts）。
+  return appServerRoute('/netease') || null;
 };
 
 /** 网页版配置的远端 API 地址（自检与诊断报告用）；桌面版走内嵌后端，返回 null。 */
@@ -156,8 +159,9 @@ const getApiBase = async () => {
 
   const configuredApiBase = getConfiguredApiBase();
   if (configuredApiBase) {
-    API_BASE = configuredApiBase;
-    return API_BASE;
+    // 设置里的服务器地址随时可改，不缓存；构建时的地址照旧缓存。
+    if (!isCapacitorAndroid()) API_BASE = configuredApiBase;
+    return configuredApiBase;
   }
 
   // code 标签让 provider 认出“未配置”（持久，不是暂时失败）；message 原文不变，诊断依赖它。

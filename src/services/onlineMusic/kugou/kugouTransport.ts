@@ -3,6 +3,7 @@ import { OnlineProviderError } from '../../../types/onlineMusic';
 import { readProviderSessionValue, removeProviderSessionValue, writeProviderSessionValue } from '../providerStorage';
 import { lyricProxyWebUrl, requestLyricProxyOnDesktop } from '../../lyricProxy';
 import { withLoginRequestLimit } from '../login/loginRequestLimit';
+import { appServerRoute } from '../../appServer';
 
 // src/services/onlineMusic/kugou/kugouTransport.ts
 
@@ -68,7 +69,8 @@ const getWebApiBase = (): string => {
     const processValue = typeof process !== 'undefined'
         ? String(process.env?.VITE_KUGOU_API_BASE || '')
         : '';
-    const value = viteValue || processValue;
+    // Android App：没有构建时地址就从设置里的 Folia 服务器派生（services/appServer.ts）。
+    const value = viteValue || processValue || appServerRoute('/kugou');
     return value.trim().replace(/\/$/, '');
 };
 

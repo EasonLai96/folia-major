@@ -2,6 +2,7 @@ import { OnlineProviderError } from '../../../types/onlineMusic';
 import { readProviderSessionValue, removeProviderSessionValue, writeProviderSessionValue } from '../providerStorage';
 import { withLoginRequestLimit } from '../login/loginRequestLimit';
 import { withOnlineRequestLimit } from '../failure/onlineRequestLimit';
+import { appServerRoute } from '../../appServer';
 
 // src/services/onlineMusic/qq/qqTransport.ts
 
@@ -112,7 +113,8 @@ const getWebApiBase = (): string => {
     const processValue = typeof process !== 'undefined'
         ? String(process.env?.VITE_QQ_API_BASE || '')
         : '';
-    const value = viteValue || processValue;
+    // Android App：没有构建时地址就从设置里的 Folia 服务器派生（services/appServer.ts）。
+    const value = viteValue || processValue || appServerRoute('/qq');
     return value.trim().replace(/\/$/, '');
 };
 

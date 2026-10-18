@@ -91,3 +91,10 @@ __pycache__/
 
 # Built by build/buildPythonRuntime.mjs - binary artifacts that live on the mirrors, not in git.
 dist-runtime/
+
+# Android (Capacitor) build outputs
+android/local.properties
+android/app/build/
+android/build/
+android/.gradle/
+android/app/src/main/assets/public/
