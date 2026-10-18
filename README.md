@@ -9,6 +9,9 @@
 
 Lyrics Reimagined // 辞曲新境
 
+> [!TIP]
+> **這是 Folia 的 Android App 分支。** 直接安裝的 APK、通知欄 / 鎖屏 / 超級島媒體控制、手機播放條與手勢，說明見 [Android App 說明](docs/android.md)，安裝檔在 [Releases](../../releases)。
+
 [![GitHub release](https://img.shields.io/github/v/release/chthollyphile/folia-major?label=release)](https://github.com/chthollyphile/folia-major/releases)
 [![License](https://img.shields.io/github/license/chthollyphile/folia-major)](https://github.com/chthollyphile/folia-major/blob/main/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/chthollyphile/folia-major?style=social)](https://github.com/chthollyphile/folia-major/stargazers)
