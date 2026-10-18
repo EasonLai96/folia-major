@@ -8,6 +8,7 @@ import {
     isMediaSessionSourceReady,
     publishMediaSessionTrack,
 } from '../utils/mediaSessionSync';
+import { getFoliaMediaSession, isNativeMediaSession } from '../platform/nativeMediaSession';
 
 // Bridges Folia playback state to the browser Media Session API.
 type UseMediaSessionBridgeOptions = {
@@ -51,11 +52,12 @@ export const useMediaSessionBridge = ({
     isNowPlayingControlDisabledRef,
 }: UseMediaSessionBridgeOptions) => {
     useEffect(() => {
-        if (!('mediaSession' in navigator)) {
+        // Android App 是原生替身（通知栏、锁屏、灵动岛），其他环境是 navigator.mediaSession。
+        const mediaSession = getFoliaMediaSession();
+        if (!mediaSession) {
             return;
         }
 
-        const mediaSession = navigator.mediaSession;
         const setActionHandlerSafely = (
             action: MediaSessionAction,
             handler: MediaSessionActionHandler | null
@@ -107,14 +109,15 @@ export const useMediaSessionBridge = ({
     }, [audioRef, isNowPlayingControlDisabledRef, mediaSessionNextRef, mediaSessionPauseRef, mediaSessionPlayRef, mediaSessionPrevRef]);
 
     useEffect(() => {
-        if (!('mediaSession' in navigator)) {
+        const mediaSession = getFoliaMediaSession();
+        if (!mediaSession) {
             return;
         }
 
         if (!currentSong) {
             try {
-                navigator.mediaSession.setPositionState();
-                navigator.mediaSession.metadata = null;
+                mediaSession.setPositionState();
+                mediaSession.metadata = null;
             } catch (e) {
                 console.warn('[MediaSession] Failed to clear metadata', e);
             }
@@ -129,7 +132,11 @@ export const useMediaSessionBridge = ({
         }
 
         let disposed = false;
-        const sourceArtworkUrl = cachedCoverUrl || getSongCoverUrl(currentSong) || '';
+        // 原生面板要自己下载封面：优先给远程地址，blob: 缓存地址在原生那边读不到。
+        const nativePanel = isNativeMediaSession();
+        const sourceArtworkUrl = (nativePanel
+            ? getSongCoverUrl(currentSong) || cachedCoverUrl
+            : cachedCoverUrl || getSongCoverUrl(currentSong)) || '';
         let artworkUrl = getSupportedMediaSessionArtworkUrl(sourceArtworkUrl, document.baseURI);
         let disposableArtworkUrl: string | null = null;
         const publish = () => {
@@ -138,7 +145,7 @@ export const useMediaSessionBridge = ({
             }
 
             try {
-                publishMediaSessionTrack(navigator.mediaSession, audio, {
+                publishMediaSessionTrack(mediaSession as MediaSession, audio, {
                     title: currentSong.name,
                     artist: getSongArtistLabel(currentSong) || unknownArtistLabel,
                     album: getSongAlbumLabel(currentSong),
@@ -152,7 +159,7 @@ export const useMediaSessionBridge = ({
         // MediaMetadata rejects Electron's custom protocol, so expose that image through a
         // short-lived blob URL while this track owns the platform media session.
         const prepareUnsupportedArtwork = async () => {
-            if (!sourceArtworkUrl || artworkUrl) return;
+            if (!sourceArtworkUrl || artworkUrl || nativePanel) return;
 
             try {
                 const response = await fetch(sourceArtworkUrl);
@@ -179,6 +186,11 @@ export const useMediaSessionBridge = ({
         audio.addEventListener('durationchange', publish);
         // Re-publish after playback starts in case Chromium delivered a late clear from the old source.
         audio.addEventListener('playing', publish);
+        // 原生面板不会自己跟进度：暂停、拖动后再报一次位置（同一首不会重复下载封面）。
+        if (nativePanel) {
+            audio.addEventListener('pause', publish);
+            audio.addEventListener('seeked', publish);
+        }
         publish();
         void prepareUnsupportedArtwork();
 
@@ -187,17 +199,20 @@ export const useMediaSessionBridge = ({
             audio.removeEventListener('loadedmetadata', publish);
             audio.removeEventListener('durationchange', publish);
             audio.removeEventListener('playing', publish);
+            audio.removeEventListener('pause', publish);
+            audio.removeEventListener('seeked', publish);
             if (disposableArtworkUrl) URL.revokeObjectURL(disposableArtworkUrl);
         };
     }, [audioRef, audioSrc, cachedCoverUrl, currentSong, getDisplayAudioElement, unknownArtistLabel]);
 
     useEffect(() => {
-        if (!('mediaSession' in navigator)) {
+        const mediaSession = getFoliaMediaSession();
+        if (!mediaSession) {
             return;
         }
 
         try {
-            navigator.mediaSession.playbackState = isNowPlayingStageActive
+            mediaSession.playbackState = isNowPlayingStageActive
                 ? 'none'
                 : currentSong
                     ? (playerState === PlayerState.PLAYING ? 'playing' : 'paused')

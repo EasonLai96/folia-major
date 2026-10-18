@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getStoredString } from './storagePrimitives';
+import { isCapacitorAndroid } from '../platform/runtime';
 import { isPonderHintVisibility, type PonderHintVisibility, type PonderTargetId } from '../types/ponder';
 import { parsePonderSeen, serializePonderSeen, withPonderSeen } from '../utils/ponder/ponderSeenRecord';
 
@@ -33,7 +34,8 @@ const readStoredVisibility = (): PonderHintVisibility => {
  */
 const readStoredTouchButton = (): boolean => {
     try {
-        return getStoredString(PONDER_TOUCH_BUTTON_STORAGE_KEY, 'on') !== 'off';
+        // 手机 App 默认收起右上角的灯泡（思索）：它会盖住页面右上角；设置 → 通用 里可以再打开。
+        return getStoredString(PONDER_TOUCH_BUTTON_STORAGE_KEY, isCapacitorAndroid() ? 'off' : 'on') !== 'off';
     } catch {
         return true;
     }

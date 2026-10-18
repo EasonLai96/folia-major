@@ -19,13 +19,15 @@ export type SettingsSectionStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
 export interface SettingsSectionAvailability {
     isElectron: boolean;
+    isAndroidApp?: boolean;
 }
 
 /** Section ids the sidebar actually shows on this runtime, in sidebar order. */
-export const getAvailableSettingsSectionIds = ({ isElectron }: SettingsSectionAvailability): SettingsSectionId[] => (
+export const getAvailableSettingsSectionIds = ({ isElectron, isAndroidApp = false }: SettingsSectionAvailability): SettingsSectionId[] => (
     SETTINGS_NAV_GROUP_SPECS
         .flatMap(group => group.sections)
         .filter(section => !section.electronOnly || isElectron)
+        .filter(section => !(section.hiddenOnAndroid && isAndroidApp))
         .map(section => section.id)
 );
 

@@ -11,6 +11,7 @@ import { Button, CopyButton, CopyValue, Group, Keys, Row, type SettingsGroupDef 
 import { openOutsideLink } from '../../../../utils/system/outsideLink';
 import { FoundUpdateRow } from './FoundUpdateRow';
 import { iconLabel } from './iconLabel';
+import { isCapacitorAndroid } from '../../../../platform/runtime';
 
 // src/components/modal/settings/pages/HelpPage.tsx
 // The 帮助 page, reached from the foot of the side list: two entry cards (the release notes, the
@@ -120,7 +121,8 @@ const HelpPage: React.FC<HelpPageProps> = ({ onOpenReleaseNotes, onOpenAiHelp, o
 
             {/* Each group is the first in a cell of its own, so the two headings stand level; the
                 cells then sit as far under the cards above as any group does. */}
-            <div className={`${COLUMNS_CLASS} mt-2 gap-y-2`}>
+            {/* 手机 App 没有键盘，快捷键说明只是杂讯。 */}
+            {!isCapacitorAndroid() && <div className={`${COLUMNS_CLASS} mt-2 gap-y-2`}>
                 <div>
                     <Group def={SHORTCUTS}>
                         {HELP_TAB_PRIMARY_SHORTCUTS.map(shortcut => (
@@ -140,7 +142,7 @@ const HelpPage: React.FC<HelpPageProps> = ({ onOpenReleaseNotes, onOpenAiHelp, o
                         ))}
                     </Group>
                 </div>
-            </div>
+            </div>}
 
             <Group def={SUPPORT} bare>
                 <Row label={iconLabel(CircleHelp, t('aiHelp.openButton'))} onClick={onOpenAiHelp} />

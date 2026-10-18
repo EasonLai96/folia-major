@@ -32,6 +32,7 @@ import SettingsSideList from './settings/navigation/SettingsSideList';
 import { settingsAnchorSubview } from './settings/navigation/settingsAnchorModel';
 import { buildSettingsNavGroups, findSettingsNavItem, type SettingsSectionId } from './settings/navigation/settingsNavModel';
 import { buildSettingsSearchEntries, searchSettings, type SettingsSearchEntry } from './settings/navigation/settingsNavSearch';
+import { isCapacitorAndroid } from '../../platform/runtime';
 import { isSettingsSectionSubview, resolveInitialSettingsSection, sectionForSettingsSubview, writeLastSettingsSection } from './settings/navigation/settingsLastSection';
 import { useSettingsLanding, type SettingsLandingTarget } from './settings/navigation/useSettingsLanding';
 import { runsOnWindows } from '../../utils/platform';
@@ -283,6 +284,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         initialSubview,
         hasInitialAnchor: initialAnchor !== null,
         isElectron: hasElectronBridge(),
+        isAndroidApp: isCapacitorAndroid(),
     }));
     const [searchQuery, setSearchQuery] = useState('');
     const isSearching = searchQuery.trim() !== '';
@@ -298,7 +300,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         setSearchQuery('');
         setLandingTarget(null);
         setActiveSettingsSection(section);
-        writeLastSettingsSection(section, { isElectron: hasElectronBridge() });
+        writeLastSettingsSection(section, { isElectron: hasElectronBridge(), isAndroidApp: isCapacitorAndroid() });
     };
     const handleSelectHelp = () => {
         setActiveTab('help');
@@ -344,7 +346,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             setActiveSettingsSection(targetSection);
             // 只有真正进入某个分区页才记忆；二级面板和调参台不算「进入」分区。
             if (isSettingsSectionSubview(initialSubview)) {
-                writeLastSettingsSection(targetSection, { isElectron: hasElectronBridge() });
+                writeLastSettingsSection(targetSection, { isElectron: hasElectronBridge(), isAndroidApp: isCapacitorAndroid() });
             }
         } else {
             setActiveSettingsSection(prev => prev || 'appearance');
@@ -980,7 +982,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const canEnableAutoUpdate = Boolean(electronSettings.ENABLE_UPDATE_CHECK && updateStatus?.autoUpdateSupported);
 
     const settingsNavGroups = useMemo(
-        () => buildSettingsNavGroups(t, { isElectron }),
+        () => buildSettingsNavGroups(t, { isElectron, isAndroidApp: isCapacitorAndroid() }),
         [t, isElectron],
     );
     const activeSettingsNavItem = findSettingsNavItem(settingsNavGroups, activeSettingsSection);
