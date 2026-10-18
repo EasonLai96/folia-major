@@ -14,6 +14,7 @@ import { updatePaperShaderUniforms } from '../../../../utils/paperShaderUniforms
 import { createPaperShaderReleaseRef, PAPER_SHADER_CONTEXT_ATTRIBUTES } from '../../../../utils/paperShaderContext';
 import { useFirstFrameDrawn } from '../../styleTransition/firstFrame';
 import { useBlendedColors } from '../useBlendedColors';
+import { shaderPixelBudget } from '../../../../platform/androidPowerProfile';
 
 // src/components/visualizer/backgrounds/latent/LatentBackground.tsx
 // Layers two cover-colored Paper shaders and drives their uniforms without React frame updates.
@@ -30,7 +31,8 @@ interface LatentBackgroundProps {
     blendMs?: number;
 }
 
-const MAX_SHADER_PIXELS = 1280 * 720;
+// Android App 里压到省电档的像素预算（platform/androidPowerProfile.ts）。
+const MAX_SHADER_PIXELS = shaderPixelBudget(1280 * 720);
 const PAUSED_SPEED_SCALE = 0.12;
 // How fast the speed goes from playing to paused or back, as a time constant: settled in about a second.
 const PAUSE_EASE_MS = 300;

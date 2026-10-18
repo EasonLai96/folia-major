@@ -11,7 +11,7 @@ describe('frameRateLimiter', () => {
         expect(parseVisualizerFrameRate('120')).toBe(120);
         expect(parseVisualizerFrameRate('90')).toBe(90);
         expect(parseVisualizerFrameRate('60')).toBe(60);
-        expect(parseVisualizerFrameRate('30')).toBe('off');
+        expect(parseVisualizerFrameRate('30')).toBe(30);
         expect(parseVisualizerFrameRate('15')).toBe('off');
         expect(parseVisualizerFrameRate('24')).toBe('off');
     });

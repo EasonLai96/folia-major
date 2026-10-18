@@ -1,5 +1,6 @@
 import { Buffer } from 'buffer';
 import { installGlobalVisualizerFrameRateLimiter } from './utils/frameRateLimiter';
+import { installAndroidPowerProfile } from './platform/androidPowerProfile';
 import { installConsoleLogCapture } from './utils/consoleLogBuffer';
 import { installDebugModule } from './services/debug/debugModule';
 import { installMemorySampleFeed } from './services/debug/memorySamples';
@@ -20,6 +21,8 @@ installMemorySampleFeed();
 // only even then: a packaged build has nothing to do with the answer, so it should not pay the
 // observer or the rows it retains.
 // if (import.meta.env.DEV) installCoverSizeAudit();
+// Android App：封顶渲染像素密度（要在任何 canvas 建立之前）。
+installAndroidPowerProfile();
 installGlobalVisualizerFrameRateLimiter();
 
 void import('./bootstrap');

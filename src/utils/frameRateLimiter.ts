@@ -19,7 +19,7 @@ type WindowWithVisualizerFrameRateLimiter = Window & {
     __foliaNativeCancelAnimationFrame?: CancelAnimationFrameFn;
 };
 
-export const VISUALIZER_FRAME_RATE_OPTIONS = [60, 90, 120] as const satisfies VisualizerFrameRate[];
+export const VISUALIZER_FRAME_RATE_OPTIONS = [30, 60, 90, 120] as const satisfies VisualizerFrameRate[];
 export const VISUALIZER_FRAME_RATE_STORAGE_KEY = 'visualizer_frame_rate';
 const FRAME_INTERVAL_TOLERANCE_MS = 1;
 
@@ -28,6 +28,7 @@ export const isVisualizerFrameRate = (value: unknown): value is VisualizerFrameR
     || value === 120
     || value === 90
     || value === 60
+    || value === 30
 );
 
 export const parseVisualizerFrameRate = (value: string | null): VisualizerFrameRate => {
