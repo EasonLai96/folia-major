@@ -20,6 +20,12 @@ export const AppServerRows: React.FC = () => {
 
     // 测一次地址；连得上就保存并重新载入。
     const testAndSave = async () => {
+        // 清空：回到默认公共服务器。
+        if (!url.trim()) {
+            setAppServerBase('');
+            window.setTimeout(() => window.location.reload(), 300);
+            return;
+        }
         setState('testing');
         const ok = await testAppServer(url);
         setState(ok ? 'ok' : 'failed');
@@ -41,7 +47,7 @@ export const AppServerRows: React.FC = () => {
             </Row>
             <Row sub label={t('options.appServerUrl')}>
                 <TextField type="url" value={url} onChange={setUrl} placeholder="https://folia.example.com" />
-                <Button onClick={() => void testAndSave()} disabled={state === 'testing' || !url.trim()}>
+                <Button onClick={() => void testAndSave()} disabled={state === 'testing' || (!url.trim() && !getStoredAppServerBase())}>
                     {t('options.appServerTest')}
                 </Button>
             </Row>

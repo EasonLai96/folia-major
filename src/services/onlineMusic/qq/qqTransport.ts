@@ -2,7 +2,7 @@ import { OnlineProviderError } from '../../../types/onlineMusic';
 import { readProviderSessionValue, removeProviderSessionValue, writeProviderSessionValue } from '../providerStorage';
 import { withLoginRequestLimit } from '../login/loginRequestLimit';
 import { withOnlineRequestLimit } from '../failure/onlineRequestLimit';
-import { appServerRoute } from '../../appServer';
+import { appServerFetch, appServerRoute } from '../../appServer';
 
 // src/services/onlineMusic/qq/qqTransport.ts
 
@@ -113,8 +113,8 @@ const getWebApiBase = (): string => {
     const processValue = typeof process !== 'undefined'
         ? String(process.env?.VITE_QQ_API_BASE || '')
         : '';
-    // Android App：没有构建时地址就从设置里的 Folia 服务器派生（services/appServer.ts）。
-    const value = viteValue || processValue || appServerRoute('/qq');
+    // Android App：设置里填的 Folia 服务器优先，其次才是构建时地址（services/appServer.ts）。
+    const value = appServerRoute('/qq') || viteValue || processValue;
     return value.trim().replace(/\/$/, '');
 };
 
@@ -383,7 +383,8 @@ export const requestQq = async <T = unknown>(
         : { credentials, headers };
     // The answer and its body, read together: the time limit covers both.
     const send = async (signal?: AbortSignal) => {
-        const answer = await fetch(`${base}${endpoint.path}?${query}`, { ...init, ...(signal ? { signal } : {}) });
+        // Android App 走原生 HTTP（appServerFetch）：serverless 后端的错误回答不带 CORS 头，WebView 会把它吞成网络错误。
+        const answer = await appServerFetch(`${base}${endpoint.path}?${query}`, { ...init, ...(signal ? { signal } : {}) });
         return { response: answer, body: await readJsonBody(answer) };
     };
     const { response, body } = await (LOGIN_REQUESTS.has(operation) ? withLoginRequestLimit(send)

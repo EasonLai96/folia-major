@@ -30,6 +30,10 @@ const isElectronRuntime = () =>
   Boolean(getElectronBridge() && typeof getElectronBridge()?.getNeteasePort === 'function');
 
 const getConfiguredApiBase = () => {
+  // Android App：设置里填的 Folia 服务器优先（services/appServer.ts）。
+  const appServerBase = appServerRoute('/netease');
+  if (appServerBase) return appServerBase;
+
   const viteEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
   if (viteEnv && typeof viteEnv.VITE_NETEASE_API_BASE === 'string' && viteEnv.VITE_NETEASE_API_BASE) {
     return viteEnv.VITE_NETEASE_API_BASE;
@@ -39,8 +43,7 @@ const getConfiguredApiBase = () => {
     return process.env.VITE_NETEASE_API_BASE;
   }
 
-  // Android App：从设置里的 Folia 服务器派生（services/appServer.ts）。
-  return appServerRoute('/netease') || null;
+  return null;
 };
 
 /** 网页版配置的远端 API 地址（自检与诊断报告用）；桌面版走内嵌后端，返回 null。 */

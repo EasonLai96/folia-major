@@ -69,8 +69,8 @@ const getWebApiBase = (): string => {
     const processValue = typeof process !== 'undefined'
         ? String(process.env?.VITE_KUGOU_API_BASE || '')
         : '';
-    // Android App：没有构建时地址就从设置里的 Folia 服务器派生（services/appServer.ts）。
-    const value = viteValue || processValue || appServerRoute('/kugou');
+    // Android App：设置里填的 Folia 服务器优先，其次才是构建时地址（services/appServer.ts）。
+    const value = appServerRoute('/kugou') || viteValue || processValue;
     return value.trim().replace(/\/$/, '');
 };
 

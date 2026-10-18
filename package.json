@@ -20,7 +20,7 @@
     "dev:probe": "vite --open /dev-probe.html",
     "build": "npm run build:vercel-api && vite build",
     "build:vercel-api": "tsc -p api-ts/tsconfig.json",
-    "build:capacitor": "cross-env FOLIA_BUILD_TARGET=capacitor vite build",
+    "build:capacitor": "cross-env FOLIA_BUILD_TARGET=capacitor vite build --mode android",
     "cap:sync:android": "npm run build:capacitor && cap sync android",
     "build:android:debug": "npm run cap:sync:android && cd android && ./gradlew assembleDebug",
     "preview": "vite preview",
