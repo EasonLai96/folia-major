@@ -107,6 +107,20 @@ class NativeMediaSessionShim implements FoliaMediaSession {
     }
 }
 
+/**
+ * 给原生替身用的 MediaMetadata：Android WebView 没有开 Media Session 这组接口，`new MediaMetadata()`
+ * 会直接抛 ReferenceError，歌名和封面就送不到通知栏、锁屏和超级岛。替身只读这几个字段，给个普通对象就够。
+ */
+export const createFoliaMediaMetadata = (init: MediaMetadataInit): MediaMetadata => {
+    if (typeof MediaMetadata === 'function') return new MediaMetadata(init);
+    return {
+        title: init.title ?? '',
+        artist: init.artist ?? '',
+        album: init.album ?? '',
+        artwork: [...(init.artwork ?? [])],
+    } as MediaMetadata;
+};
+
 let nativeShim: NativeMediaSessionShim | null = null;
 
 /** 这个环境的媒体会话：Android App 是原生替身，浏览器 / 桌面是 navigator.mediaSession，都没有就是 null。 */

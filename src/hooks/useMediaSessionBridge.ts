@@ -8,7 +8,7 @@ import {
     isMediaSessionSourceReady,
     publishMediaSessionTrack,
 } from '../utils/mediaSessionSync';
-import { getFoliaMediaSession, isNativeMediaSession } from '../platform/nativeMediaSession';
+import { createFoliaMediaMetadata, getFoliaMediaSession, isNativeMediaSession } from '../platform/nativeMediaSession';
 
 // Bridges Folia playback state to the browser Media Session API.
 type UseMediaSessionBridgeOptions = {
@@ -150,7 +150,7 @@ export const useMediaSessionBridge = ({
                     artist: getSongArtistLabel(currentSong) || unknownArtistLabel,
                     album: getSongAlbumLabel(currentSong),
                     artworkUrl,
-                });
+                }, nativePanel ? createFoliaMediaMetadata : undefined);
             } catch (e) {
                 console.warn('[MediaSession] Failed to update metadata', e);
             }
