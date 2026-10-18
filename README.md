@@ -16,9 +16,9 @@
 
 ## Android 實機示範
 
-https://github.com/user-attachments/assets/2d2cabce-9477-4471-a454-2f5a22deaf8f
+https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e
 
-[下載原始影片](https://raw.githubusercontent.com/EasonLai96/folia-major/android/docs/media/folia-android-demo.mp4)
+[開啟示範影片](https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e)
 
 ## 為什麼做 Android 版？
 
