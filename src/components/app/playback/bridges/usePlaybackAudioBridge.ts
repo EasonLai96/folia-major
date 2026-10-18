@@ -16,6 +16,7 @@ import { useAudioSettingsStore } from '../../../../stores/useAudioSettingsStore'
 import { setPlayerState } from '../../../../stores/usePlaybackStore';
 import { useTranslation } from 'react-i18next';
 import { usePlaybackStore } from '../../../../stores/usePlaybackStore';
+import { isCapacitorAndroid } from '../../../../platform/runtime';
 
 // src/components/app/playback/bridges/usePlaybackAudioBridge.ts
 
@@ -132,7 +133,11 @@ export function usePlaybackAudioBridge({
         if (!audioRef.current || audioContextRef.current) return;
         try {
             const AudioContextClass = window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AudioContextClass();
+            // Android App：默认的 interactive 缓冲很小，播放页特效占满主线程时音频来不及送出，
+            // 听起来是断续的咔嗒、嘶嘶声。放歌不需要低延迟，换成 playback 的大缓冲。
+            const ctx = isCapacitorAndroid()
+                ? new AudioContextClass({ latencyHint: 'playback' })
+                : new AudioContextClass();
             audioContextRef.current = ctx;
 
             const analyser = ctx.createAnalyser();

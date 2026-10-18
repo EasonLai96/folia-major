@@ -23,6 +23,10 @@ const config: CapacitorConfig = {
             backgroundColor: '#09090b',
             showSpinner: false,
         },
+        SystemBars: {
+            // 系统栏的留边由 MainActivity 自己算：看得见的栏才避开，播放页收起后铺满（含挖孔）。
+            insetsHandling: 'disable',
+        },
         StatusBar: {
             overlaysWebView: false,
             style: 'DARK',
