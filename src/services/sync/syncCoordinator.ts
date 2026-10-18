@@ -1,7 +1,7 @@
 import { getSyncConfig, isSyncConfigured, setSyncStatus } from './syncConfig';
 import { getRemoteState, testSyncConnection } from './syncClient';
 import type { SyncProviderConfig } from './syncTypes';
-import { applySyncedVisualSettings, buildSyncedSettingsRecord, readSyncableSettingsState } from './settingsSnapshot';
+import { applySyncedVisualSettings, buildSyncedSettingsRecord, getSyncedSettingsSignature, readSyncableSettingsState } from './settingsSnapshot';
 import {
     fetchRemoteSyncState,
     fetchRemoteSettingsIfNewer,
@@ -13,13 +13,18 @@ import {
     saveSyncLibraryBundleToLocalCache,
 } from './syncRepository';
 import { parseSyncLibraryExportBundle } from './syncSchema';
-import type { SyncLibraryExportBundle, SyncRemoteState } from './syncTypes';
+import type { SyncedSettingsRecord, SyncLibraryExportBundle, SyncRemoteState } from './syncTypes';
 import { SYNC_SCHEMA_VERSION } from './syncTypes';
 
 // src/services/sync/syncCoordinator.ts
 // Coordinates startup theme sync and user-triggered manual sync commands.
 
 const LOCAL_SETTINGS_UPDATED_AT_KEY = 'folia_sync_local_settings_updated_at_v1';
+/**
+ * 上一次与云端对齐时（拉取应用、推送成功、导入）本地视觉设置的签名。当前签名与它不同，
+ * 就说明本地在那之后改过设置。只靠上面的时间戳分辨不出这一点：平常改设置不会更新它。
+ */
+const LOCAL_SETTINGS_SYNCED_SIGNATURE_KEY = 'folia_sync_local_settings_signature_v1';
 let applyingRemoteSettings = false;
 let isSyncingInProgress = false;
 
@@ -35,15 +40,45 @@ const setLocalSettingsUpdatedAt = (updatedAt: string) => {
     }
 };
 
+const getSyncedSettingsBaseline = () => (
+    isBrowser() ? window.localStorage.getItem(LOCAL_SETTINGS_SYNCED_SIGNATURE_KEY) : null
+);
+
+/**
+ * 记下「本地与云端此刻一致」：时间戳是这份设置在云端的版本，签名是与云端一致的那份本地设置。
+ * 推送时传入推送那一刻的签名，推送途中又改的设置仍算未同步。
+ */
+const markSettingsInSync = (updatedAt: string, signature = getSyncedSettingsSignature(readSyncableSettingsState())) => {
+    setLocalSettingsUpdatedAt(updatedAt);
+    if (isBrowser()) {
+        window.localStorage.setItem(LOCAL_SETTINGS_SYNCED_SIGNATURE_KEY, signature);
+    }
+};
+
+/**
+ * 本地视觉设置在上一次同步后是否改过。没有基准（从没同步过，或来自没有签名的旧版本）时
+ * 无法确定，按「改过」处理：宁可问一次，也不悄悄用云端覆盖本地。
+ */
+const hasLocalSettingsChangedSinceSync = () => {
+    const baseline = getSyncedSettingsBaseline();
+    return baseline === null || baseline !== getSyncedSettingsSignature(readSyncableSettingsState());
+};
+
+/** 推送本地设置；只有服务端确认写入之后才记为已同步，失败时本地仍算「有未上传的修改」。 */
 const pushCurrentSettings = async () => {
     if (!isSyncConfigured()) {
         return false;
     }
 
     const updatedAt = new Date().toISOString();
-    const record = buildSyncedSettingsRecord(readSyncableSettingsState(), updatedAt);
-    setLocalSettingsUpdatedAt(updatedAt);
-    return await pushRemoteSettings(record);
+    const state = readSyncableSettingsState();
+    const record = buildSyncedSettingsRecord(state, updatedAt);
+    const signature = getSyncedSettingsSignature(state);
+    const pushed = await pushRemoteSettings(record);
+    if (pushed) {
+        markSettingsInSync(updatedAt, signature);
+    }
+    return pushed;
 };
 
 export const initializeSyncCoordinator = () => {
@@ -61,24 +96,71 @@ export const testSyncProviderConnection = async (config: SyncProviderConfig) => 
     return Boolean(await getRemoteState(config));
 };
 
-export const pullRemoteVisualSettings = async (remoteState?: SyncRemoteState | null) => {
-    if (!isSyncConfigured()) {
-        return false;
-    }
-
-    const remoteSettings = await fetchRemoteSettingsIfNewer(getLocalSettingsUpdatedAt(), remoteState);
-    if (!remoteSettings) {
-        return false;
-    }
-
+const applyRemoteSettingsRecord = (remoteSettings: SyncedSettingsRecord) => {
     applyingRemoteSettings = true;
     try {
         applySyncedVisualSettings(readSyncableSettingsState(), remoteSettings.data);
-        setLocalSettingsUpdatedAt(remoteSettings.updatedAt);
-        return true;
+        markSettingsInSync(remoteSettings.updatedAt);
     } finally {
         applyingRemoteSettings = false;
     }
+};
+
+/** 两边都改过时怎么办：不给就停下来报告冲突，'local' 用本地覆盖云端，'remote' 用云端覆盖本地。 */
+export type SettingsConflictResolution = 'local' | 'remote';
+
+type SettingsSyncOutcome = {
+    appliedRemoteSettings: boolean;
+    pushedLocalSettings: boolean;
+    settingsConflict: boolean;
+};
+
+/**
+ * 视觉设置的双向同步。
+ * - 只有云端更新：应用云端，不再回推。
+ * - 只有本地改过：推送本地。
+ * - 两边都改过：没有指定 resolution 就什么都不动，报告冲突，由用户选择保留哪一边。
+ */
+const syncVisualSettings = async (
+    remoteState: SyncRemoteState | null,
+    options: { applyRemote: boolean; push: boolean; resolution?: SettingsConflictResolution },
+): Promise<SettingsSyncOutcome> => {
+    const outcome: SettingsSyncOutcome = { appliedRemoteSettings: false, pushedLocalSettings: false, settingsConflict: false };
+    const remoteSettings = options.applyRemote
+        ? await fetchRemoteSettingsIfNewer(getLocalSettingsUpdatedAt(), remoteState)
+        : null;
+    const localChanged = hasLocalSettingsChangedSinceSync();
+
+    if (remoteSettings && localChanged) {
+        if (!options.resolution) {
+            console.info('[sync] Visual settings changed on both sides, waiting for a choice', {
+                localSyncedAt: getLocalSettingsUpdatedAt(),
+                remoteUpdatedAt: remoteSettings.updatedAt,
+            });
+            outcome.settingsConflict = true;
+            return outcome;
+        }
+        console.info('[sync] Visual settings conflict resolved', { resolution: options.resolution });
+        if (options.resolution === 'remote') {
+            applyRemoteSettingsRecord(remoteSettings);
+            outcome.appliedRemoteSettings = true;
+            return outcome;
+        }
+        if (options.push) outcome.pushedLocalSettings = await pushCurrentSettings();
+        return outcome;
+    }
+
+    if (remoteSettings) {
+        applyRemoteSettingsRecord(remoteSettings);
+        outcome.appliedRemoteSettings = true;
+        return outcome;
+    }
+
+    // 云端没有更新的版本：本地改过，或者云端还没有任何设置，就推上去。
+    if (options.push && (localChanged || !remoteState?.settingsUpdatedAt)) {
+        outcome.pushedLocalSettings = await pushCurrentSettings();
+    }
+    return outcome;
 };
 
 export type SyncNowResult = {
@@ -89,9 +171,16 @@ export type SyncNowResult = {
     skippedRemoteThemeScan: boolean;
     appliedRemoteSettings: boolean;
     pushedLocalSettings: boolean;
+    /** 本地和云端的视觉设置都在上次同步后改过，这一轮没有动任何一边，要由用户选择。 */
+    settingsConflict: boolean;
 };
 
-export const syncNow = async (options: { syncThemes?: boolean; applyRemoteSettings?: boolean; pushSettings?: boolean } = {}): Promise<SyncNowResult | null> => {
+export const syncNow = async (options: {
+    syncThemes?: boolean;
+    applyRemoteSettings?: boolean;
+    pushSettings?: boolean;
+    settingsConflictResolution?: SettingsConflictResolution;
+} = {}): Promise<SyncNowResult | null> => {
     if (isSyncingInProgress) {
         return null;
     }
@@ -116,14 +205,13 @@ export const syncNow = async (options: { syncThemes?: boolean; applyRemoteSettin
             themeSyncResult = await pushMissingLocalThemesToRemote(remoteState);
         }
         
-        let appliedRemoteSettings = false;
-        let pushedLocalSettings = false;
-        if (options.applyRemoteSettings) {
-            appliedRemoteSettings = await pullRemoteVisualSettings(remoteState);
-        }
-        if (options.pushSettings) {
-            pushedLocalSettings = await pushCurrentSettings();
-        }
+        const settingsOutcome = (options.applyRemoteSettings || options.pushSettings)
+            ? await syncVisualSettings(remoteState, {
+                applyRemote: Boolean(options.applyRemoteSettings),
+                push: Boolean(options.pushSettings),
+                resolution: options.settingsConflictResolution,
+            })
+            : { appliedRemoteSettings: false, pushedLocalSettings: false, settingsConflict: false };
         setSyncStatus({ state: 'success', lastSyncAt: new Date().toISOString(), lastError: null });
         const summary = {
             uploadedThemeCount: themeSyncResult.uploadedCount,
@@ -131,8 +219,7 @@ export const syncNow = async (options: { syncThemes?: boolean; applyRemoteSettin
             checkedLocalThemeCount: themeSyncResult.checkedLocalThemeCount,
             diffBucketCount: themeSyncResult.diffBucketCount,
             skippedRemoteThemeScan: themeSyncResult.skippedRemoteThemeScan,
-            appliedRemoteSettings,
-            pushedLocalSettings,
+            ...settingsOutcome,
         };
         console.info('[sync] Sync completed', summary);
         if (summary.downloadedThemeCount > 0 && typeof window !== 'undefined') {
@@ -191,7 +278,7 @@ export const importSyncLibraryBundle = async (
             applyingRemoteSettings = true;
             try {
                 applySyncedVisualSettings(readSyncableSettingsState(), validatedBundle.settings.data);
-                setLocalSettingsUpdatedAt(validatedBundle.settings.updatedAt);
+                markSettingsInSync(validatedBundle.settings.updatedAt);
             } finally {
                 applyingRemoteSettings = false;
             }

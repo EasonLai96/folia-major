@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import ConfirmDialog from '../../../../shared/ConfirmDialog';
+import { SheetButton } from '../../../../shared/Sheet';
+import ThemedDialog from '../../../../shared/ThemedDialog';
 import { Button, Link, Reveal, Row, Status, TextField, Toggle, useSettingsKitTheme } from '../../kit';
 import { O } from './options';
 import { useSyncServer } from './useSyncServer';
@@ -89,6 +91,27 @@ export const SyncServerRows: React.FC = () => {
                 isDaylight={isDaylight}
                 onConfirm={() => void sync.confirmImport()}
                 onClose={sync.cancelImport}
+            />
+            {/* Both sides changed since the last sync: nothing is overwritten until a side is picked. */}
+            <ThemedDialog
+                isOpen={sync.hasSettingsConflict}
+                onClose={sync.cancelSettingsConflict}
+                isDaylight={isDaylight}
+                title={t('options.syncSettingsConflictTitle')}
+                description={t('options.syncSettingsConflictDesc')}
+                footer={(
+                    <>
+                        <SheetButton data-autofocus onClick={sync.cancelSettingsConflict}>
+                            {t('ui.cancel')}
+                        </SheetButton>
+                        <SheetButton onClick={() => void sync.syncSettings('remote')}>
+                            {t('options.syncSettingsKeepRemote')}
+                        </SheetButton>
+                        <SheetButton variant="primary" onClick={() => void sync.syncSettings('local')}>
+                            {t('options.syncSettingsKeepLocal')}
+                        </SheetButton>
+                    </>
+                )}
             />
         </>
     );

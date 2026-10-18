@@ -16,6 +16,9 @@ export type FoliaMediaSession = Pick<MediaSession, 'setActionHandler' | 'setPosi
 /** 通知和锁屏的封面边长：系统只画这么大，原图（常常上千像素）经 Binder 传过去会超限。 */
 const ARTWORK_EDGE_PX = 512;
 
+/** 交给原生插件表示「没有封面」的 src：插件把空串解成 null 位图，覆盖掉上一首的封面。 */
+export const CLEARED_ARTWORK_SRC = '';
+
 /** 把远程封面缩成一张小 JPEG 的 data URL（原生插件认 base64）。读不到就返回空串，通知照样出现、只是没有封面。 */
 const shrinkArtwork = async (src: string): Promise<string> => {
     let dataUrl = src;
@@ -65,7 +68,10 @@ class NativeMediaSessionShim implements FoliaMediaSession {
         const job = ++this.artworkJob;
         const text = { title: value.title, artist: value.artist, album: value.album };
         // 先发文字，通知立刻换成新歌；封面缩好再补上。
-        void NativeMediaSessionPlugin.setMetadata({ ...text, artwork: [] })
+        // 同时清掉上一首的封面：插件遇到空数组 `artwork: []` 会保留已有图片，只有给一个空 src
+        // （它的 urlToBitmap('') 返回 null）才会把封面换成「没有」。否则新歌没有封面、或封面下载 /
+        // 解码失败时，通知会一直挂着上一首的封面。
+        void NativeMediaSessionPlugin.setMetadata({ ...text, artwork: [{ src: CLEARED_ARTWORK_SRC }] })
             .catch(error => console.warn('[NativeMediaSession] Metadata failed', error));
         if (!artworkSrc) return;
         void shrinkArtwork(artworkSrc)

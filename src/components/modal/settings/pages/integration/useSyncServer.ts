@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createSyncLibraryZipBlob, readSyncLibraryZipFile } from '../../../../../services/sync/syncArchive';
 import { getSyncConfig, getSyncStatus, saveSyncConfig, setSyncStatus, subscribeSyncConfig, subscribeSyncStatus } from '../../../../../services/sync/syncConfig';
-import { exportSyncLibraryBundle, importSyncLibraryBundle, isSyncLibraryExportBundle, syncNow, testSyncProviderConnection } from '../../../../../services/sync/syncCoordinator';
+import { exportSyncLibraryBundle, importSyncLibraryBundle, isSyncLibraryExportBundle, syncNow, testSyncProviderConnection, type SettingsConflictResolution } from '../../../../../services/sync/syncCoordinator';
 import { SYNC_PROVIDER, type SyncLibraryExportBundle, type SyncProviderConfig } from '../../../../../services/sync/syncTypes';
 import { createSafeObjectUrl } from '../../../../../utils/blobGuards';
 import { formatLocalDateTimeStamp } from '../../../../../utils/downloadFileName';
@@ -27,6 +27,8 @@ export const useSyncServer = () => {
     const [summary, setSummary] = useState<string | null>(null);
     // A sync library read from a file, held until the person confirms that it replaces the local one.
     const [pendingImport, setPendingImport] = useState<SyncLibraryExportBundle | null>(null);
+    // The visual settings changed here and on the server since the last sync; held until the person picks a side.
+    const [settingsConflict, setSettingsConflict] = useState(false);
 
     useEffect(() => {
         const unsubscribeConfig = subscribeSyncConfig(() => {
@@ -113,15 +115,24 @@ export const useSyncServer = () => {
         }
     };
 
-    const syncSettings = async () => {
+    const syncSettings = async (resolution?: SettingsConflictResolution) => {
         if (dirty) {
             save();
         }
+        setSettingsConflict(false);
         setAction('syncingSettings');
         setSummary(null);
         try {
-            const result = await syncNow({ syncThemes: false, applyRemoteSettings: true, pushSettings: true });
-            if (result) {
+            const result = await syncNow({
+                syncThemes: false,
+                applyRemoteSettings: true,
+                pushSettings: true,
+                settingsConflictResolution: resolution,
+            });
+            if (result?.settingsConflict) {
+                setSettingsConflict(true);
+                setSummary(t('ui.storage.syncSettingsConflictPending'));
+            } else if (result) {
                 const parts: string[] = [];
                 if (result.appliedRemoteSettings) parts.push(t('ui.storage.syncAppliedRemote'));
                 if (result.pushedLocalSettings) parts.push(t('ui.storage.syncPushedLocal'));
@@ -133,6 +144,8 @@ export const useSyncServer = () => {
             setAction('idle');
         }
     };
+
+    const cancelSettingsConflict = () => setSettingsConflict(false);
 
     /** Writes the sync library to a zip file and hands it to the browser as a download. */
     const exportLibrary = async () => {
@@ -193,11 +206,13 @@ export const useSyncServer = () => {
         statusText: summary || statusLabel,
         statusTone,
         hasPendingImport: pendingImport !== null,
+        hasSettingsConflict: settingsConflict,
         update,
         save,
         test,
         syncThemes,
         syncSettings,
+        cancelSettingsConflict,
         exportLibrary,
         readImportFile,
         cancelImport,

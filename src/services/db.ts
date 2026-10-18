@@ -237,7 +237,25 @@ export const deleteLocalSongs = async (ids: string[]): Promise<void> => {
   }
 };
 
-export const clearAllData = async (): Promise<void> => {
+/** 存储页逐行列出的缓存类别：都能重新下载或重新计算。 */
+const REBUILDABLE_CACHE_CATEGORIES: CacheCategory[] = ['playlist', 'lyrics', 'cover', 'media', 'analysis'];
+
+/**
+ * 「全部清空」：只清能重建的缓存，也就是存储页逐行列出的那几类。
+ * 本地曲库（歌曲记录、手工合并 / 拆分 / 分配过的歌手与专辑）、本地文件提取的封面、主题、
+ * 导入文件夹的授权与快照、播放会话都不是缓存，重新扫描也还原不了手工整理，所以不动。
+ */
+export const clearAllCaches = async (): Promise<void> => {
+  for (const category of REBUILDABLE_CACHE_CATEGORIES) {
+    await clearCacheByCategory(category);
+  }
+};
+
+/**
+ * 删掉整个数据库：缓存之外，本地曲库的手工整理、本地封面、主题和会话也一起删除。
+ * 这是重置而不是清缓存；界面上若要提供，必须作为单独的危险操作并写明会删除什么。
+ */
+export const resetAllAppData = async (): Promise<void> => {
   try {
     if (hasElectronAudioCacheBridge()) await window.electron!.clearAudioCache();
     await clearCoverAssets();

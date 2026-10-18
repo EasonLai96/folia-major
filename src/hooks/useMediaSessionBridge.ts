@@ -33,6 +33,8 @@ type UseMediaSessionBridgeOptions = {
     mediaSessionPauseRef: RefObject<() => void>;
     mediaSessionPrevRef: RefObject<() => void>;
     mediaSessionNextRef: RefObject<() => Promise<void> | void>;
+    /** 系统面板（通知、锁屏）拖动进度时跳到的秒数；走 App 内进度条同一条跳转流程。 */
+    mediaSessionSeekRef?: RefObject<(time: number) => void>;
     isNowPlayingControlDisabledRef: RefObject<boolean>;
 };
 
@@ -49,6 +51,7 @@ export const useMediaSessionBridge = ({
     mediaSessionPauseRef,
     mediaSessionPrevRef,
     mediaSessionNextRef,
+    mediaSessionSeekRef,
     isNowPlayingControlDisabledRef,
 }: UseMediaSessionBridgeOptions) => {
     useEffect(() => {
@@ -99,14 +102,28 @@ export const useMediaSessionBridge = ({
             }
             void mediaSessionNextRef.current();
         });
+        // 不绑 seekto，Android 原生插件就不会向系统声明 ACTION_SEEK_TO，通知和锁屏的进度条拖不动。
+        if (mediaSessionSeekRef) {
+            setActionHandlerSafely('seekto', details => {
+                if (isNowPlayingControlDisabledRef.current) {
+                    return;
+                }
+                const seekTime = details.seekTime;
+                if (typeof seekTime !== 'number' || !Number.isFinite(seekTime)) {
+                    return;
+                }
+                mediaSessionSeekRef.current(Math.max(0, seekTime));
+            });
+        }
 
         return () => {
             setActionHandlerSafely('play', null);
             setActionHandlerSafely('pause', null);
             setActionHandlerSafely('previoustrack', null);
             setActionHandlerSafely('nexttrack', null);
+            if (mediaSessionSeekRef) setActionHandlerSafely('seekto', null);
         };
-    }, [audioRef, isNowPlayingControlDisabledRef, mediaSessionNextRef, mediaSessionPauseRef, mediaSessionPlayRef, mediaSessionPrevRef]);
+    }, [audioRef, isNowPlayingControlDisabledRef, mediaSessionNextRef, mediaSessionPauseRef, mediaSessionPlayRef, mediaSessionPrevRef, mediaSessionSeekRef]);
 
     useEffect(() => {
         const mediaSession = getFoliaMediaSession();

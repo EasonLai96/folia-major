@@ -1402,6 +1402,8 @@ export default function App() {
     /** Shared by every entry point that can seek while a blend is in flight. */
     const seekDuringTransition = useCallback((time: number) => seekDuringTransitionRef.current(time), []);
     const handlePauseDuringTransition = useCallback(() => pauseDuringTransitionRef.current(), []);
+    /** The system media panel's seek (notification, lock screen); written once seekMainAudio exists below. */
+    const mediaSessionSeekRef = useRef<(time: number) => void>(() => {});
 
     const { resumePlayback, pausePlayback } = usePlaybackTransportController({
         stageActiveEntryKind,
@@ -1463,6 +1465,7 @@ export default function App() {
         mediaSessionPauseRef,
         mediaSessionPrevRef,
         mediaSessionNextRef,
+        mediaSessionSeekRef,
         isNowPlayingControlDisabledRef,
     });
 
@@ -2060,6 +2063,7 @@ export default function App() {
             void publishStagePlayerPlaybackUpdate();
         }
     }, [publishStagePlayerPlaybackUpdate]);
+    mediaSessionSeekRef.current = seekMainAudio;
 
     const handleMonetLyricLineSeek = useCallback((lyricTimeSec: number) => {
         if (isNowPlayingControlDisabled) {
