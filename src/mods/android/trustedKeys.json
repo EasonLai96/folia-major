@@ -1,0 +1,24 @@
+{
+    "keys": [
+        {
+            "keyId": "folium-2026-1",
+            "label": "Folium official",
+            "publicKey": { "kty": "OKP", "crv": "Ed25519", "x": "dDmFP2b-M1A-k9FBfXIBnvR6oLigIcdnzrT7f3y3qG8" },
+            "revoked": false
+        },
+        {
+            "keyId": "folium-ci-2026-1",
+            "label": "Folium CI",
+            "publicKey": { "kty": "OKP", "crv": "Ed25519", "x": "GPmeaeLIYT85HunWM2xF1z62NeqmOh4BNpe4A2Xq5QI" },
+            "revoked": false
+        },
+        {
+            "keyId": "folium-beta-2026-1",
+            "label": "Folium beta",
+            "channel": "beta",
+            "publicKey": { "kty": "OKP", "crv": "Ed25519", "x": "c3GMZYbzgEutSSRqB5EPPVtvCvrC-Q8xdcjwmZPEc34" },
+            "revoked": false
+        }
+    ],
+    "revokedModDigests": []
+}

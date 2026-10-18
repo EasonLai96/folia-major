@@ -39,6 +39,8 @@ interface SectionSpec {
     labelKey: string;
     /** Sections that only exist on the desktop build. */
     electronOnly?: boolean;
+    /** An electronOnly section the Android app still shows (mods: client-only mods run there too). */
+    alsoOnAndroid?: boolean;
     /** Sections the Android app leaves out: debugging tools mean nothing on a phone. */
     hiddenOnAndroid?: boolean;
 }
@@ -84,7 +86,7 @@ export const SETTINGS_NAV_GROUP_SPECS: GroupSpec[] = [
         labelKey: 'options.settingsGroupAdvanced',
         sections: [
             // The loader only exists in the desktop main process; on web there is nothing to switch on.
-            { id: 'mods', icon: Boxes, labelKey: 'options.settingsPageMods', electronOnly: true },
+            { id: 'mods', icon: Boxes, labelKey: 'options.settingsPageMods', electronOnly: true, alsoOnAndroid: true },
             { id: 'developer', icon: Terminal, labelKey: 'options.settingsPageDeveloper', hiddenOnAndroid: true },
         ],
     },
@@ -97,7 +99,7 @@ export const buildSettingsNavGroups = (t: Translate, options: { isElectron: bool
             id: group.id,
             label: t(group.labelKey),
             items: group.sections
-                .filter(section => !section.electronOnly || options.isElectron)
+                .filter(section => !section.electronOnly || options.isElectron || (section.alsoOnAndroid && options.isAndroidApp))
                 .filter(section => !(section.hiddenOnAndroid && options.isAndroidApp))
                 .map(section => ({
                     id: section.id,

@@ -834,6 +834,11 @@ export function usePlaybackQueueController({
         currentOnlineAudioUrlFetchedAtRef.current = audioResult.audioSrc.startsWith('http') ? audioResult.fetchedAt : null;
         setAudioSrc(audioResult.audioSrc);
 
+        // 「正在匹配最佳歌词」由下面的自动匹配发出；匹配结束时它还在就收掉，不等显示时长。
+        let matchingNotice: StatusMessage | null = null;
+        const dropMatchingNotice = () => {
+            if (matchingNotice) setStatusMsg(prev => (prev === matchingNotice ? null : prev));
+        };
         try {
             await loadOnlineSongLyrics(song, prefetched, userId, {
                 isCurrent: () => askedSongKeyRef.current === songKey,
@@ -853,13 +858,17 @@ export function usePlaybackQueueController({
                 onAutoMatchStart: () => {
                     // A preview clip plays as it comes and is told of as it starts (previewNotice.ts),
                     // which is when this search starts too: its notice would take the preview's place.
-                    if (!audioResult.preview) setStatusMsg({ type: 'info', text: t('status.matchingBestLyrics') });
+                    if (audioResult.preview) return;
+                    matchingNotice = { type: 'info', text: t('status.matchingBestLyrics') };
+                    setStatusMsg(matchingNotice);
                 },
                 onDone: () => setIsLyricsLoading(false),
             });
+            dropMatchingNotice();
             // The load has ended; a song still asked for that it left without lyrics may get some from a mod.
             if (askedSongKeyRef.current === songKey) supplyLyricsAfterEmptyLoad();
         } catch (error) {
+            dropMatchingNotice();
             console.warn('[App] Lyric fetch failed', error);
             setLyrics(null);
             setIsLyricsLoading(false);

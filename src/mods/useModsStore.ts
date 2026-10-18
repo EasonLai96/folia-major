@@ -7,6 +7,7 @@ import {
     installModFromZip,
     isModsBridgeAvailable,
     listMods,
+    onModsHostBridgeChange,
     openModsDirectory,
     reloadMods,
     setModEnabled,
@@ -154,4 +155,9 @@ useModsStore.subscribe((state, previous) => {
     if (state.mods !== previous.mods) {
         void reconcileFoliumClients(state.mods, 'main').then(restoreSavedFoliumSelections);
     }
+});
+
+// Android App 的模组桥在 bootstrap 里注册，可能晚于这个 store 建立：注册时重读一次。
+onModsHostBridgeChange(() => {
+    useModsStore.setState({ bridgeAvailable: isModsBridgeAvailable() });
 });

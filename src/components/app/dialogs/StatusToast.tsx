@@ -60,8 +60,9 @@ export const StatusToast: React.FC<{ toast: AppStatusToast }> = ({ toast }) => {
             animate={calm ? { opacity: 1, transition: { duration: 0.15 } } : { opacity: 1, y: 0, transition: { duration: 0.32, ease: EASE_OUT } }}
             exit={calm ? { opacity: 0, transition: { duration: 0.15 } } : { opacity: 0, y: -10, transition: { duration: 0.22, ease: EASE_IN } }}
             className={`status-toast${isDaylight ? ' is-daylight' : ''}${cancel || action ? ' has-buttons' : ''}${open ? ' is-open' : ''}${calm ? ' is-calm' : ''}${isPresent ? '' : ' is-leaving'}`}
-            onPointerEnter={() => rest(true)}
-            onPointerLeave={() => rest(false)}
+            // 只认鼠标和触控笔的停留：手指碰一下之后不一定有 pointerleave，提示会一直停住、永远不消失。
+            onPointerEnter={event => { if (event.pointerType !== 'touch') rest(true); }}
+            onPointerLeave={event => { if (event.pointerType !== 'touch') rest(false); }}
             onFocus={() => rest(true)}
             onBlur={event => {
                 if (!event.currentTarget.contains(event.relatedTarget as Node | null)) rest(false);

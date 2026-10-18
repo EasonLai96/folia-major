@@ -5,14 +5,15 @@ import type { ModManagerClasses } from '../../../../mods/manager/modManagerClass
 import { useDesktopSettingsStore } from '../../../../stores/useDesktopSettingsStore';
 import { Group, Row, Status, Toggle, option, useSettingsKitTheme, type SettingsGroupDef, type SettingsOptionDef } from '../kit';
 import { SettingsAnchor } from '../navigation/SettingsAnchorContext';
+import { isModsBridgeAvailable } from '../../../../mods/ipc';
 
 // src/components/modal/settings/pages/ModsPage.tsx
-// The 模组 page (desktop app only): the mod system's master switch, and under it the mod manager.
+// The 模组 page (desktop app, and the Android app for client-only mods): the mod system's master switch, and under it the mod manager.
 // The manager is the one component the command palette's mods surface also shows
 // (src/mods/manager); here it wears the settings window's colours.
 
-const SYSTEM: SettingsGroupDef = { id: 'modSystem', titleKey: 'options.enableModSystem', electronOnly: true };
-const MANAGER: SettingsGroupDef = { id: 'modList', titleKey: 'mods.title', electronOnly: true };
+const SYSTEM: SettingsGroupDef = { id: 'modSystem', titleKey: 'options.enableModSystem', available: isModsBridgeAvailable };
+const MANAGER: SettingsGroupDef = { id: 'modList', titleKey: 'mods.title', available: isModsBridgeAvailable };
 
 const O = {
     enabled: option(SYSTEM, 'enableModSystem', 'options.enableModSystem'),

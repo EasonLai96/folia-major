@@ -3,6 +3,7 @@ import type { Variants } from 'framer-motion';
 import { useAppViewStore } from '../../../stores/useAppViewStore';
 import { readReducedMotion } from '../../../stores/useMotionSettingsStore';
 import { isFlightBackArmed } from './wallFlight';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 // src/components/app/lattice/wallLayer.ts
 // The layer App puts the wall up in: how it leaves the screen, and when the visualizer, which is
@@ -21,7 +22,9 @@ export const wallIsLeftForPage = (): boolean => useAppViewStore.getState().isLat
 // Left for the player or the home screen, the wall fades for as long as its posters take to
 // leave in their wave (PosterWall). Left for a collection's page it is out of the way in a
 // moment: the page comes up under it, and a cover is in flight from its tile to that page.
-const WALL_FADE_SECONDS = 0.62;
+// Android App 的海报不跑退场波（PosterWall.tsx，SKIPS_TILE_WAVES），整层淡出不必等波走完；手机上整层盖在
+// 播放页或首页上淡出 0.62 秒，每一帧都要合成两大层，实机测得这段掉帧最多。
+const WALL_FADE_SECONDS = isCapacitorAndroid() ? 0.2 : 0.62;
 const WALL_FADE_FOR_PAGE_SECONDS = 0.18;
 
 /**

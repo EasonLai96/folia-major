@@ -13,6 +13,8 @@ import { installFoliumHomePageDismissal } from './components/app/home/foliumHome
 import { installLibrarySuiteChromeCommands } from './library/app/installLibrarySuiteChromeCommands';
 import { noteFoliumFirstScreenMounted, startFoliumForMainWindow } from './mods/runtime/mainWindowStart';
 import { installNativeDragGuard } from './utils/nativeDragGuard';
+import { installAndroidModBridge } from './mods/android/androidModBridge';
+import { isCapacitorAndroid } from './platform/runtime';
 import { bootNavidromeServerPreset } from './services/navidromeServerPreset';
 import { isNavidromeEnabled } from './services/navidromeService';
 import { setNavidromeEnabledState } from './stores/useLibraryStore';
@@ -88,6 +90,9 @@ const renderApp = () => root.render(
 // registry, so the commands are put into its list here, before anything renders (main window only,
 // like the mod commands below). A clashing execute shortcut throws here, at startup.
 if (isMainApp) installLibrarySuiteChromeCommands();
+
+// Android App 的模组桥（只跑 client 入口的模组），要在下面启动模组之前装上。
+if (isMainApp && isCapacitorAndroid()) installAndroidModBridge();
 
 const bootFolium = async () => {
     if (!isMainApp) return;

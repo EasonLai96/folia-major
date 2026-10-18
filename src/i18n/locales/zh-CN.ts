@@ -1077,6 +1077,7 @@ export default {
     "enabled": "已启用",
     "disabled": "已禁用",
     "desktopOnly": "模组仅在桌面端可用。",
+    "android": {"marketHint": "只有界面入口的模组能在手机上安装运行，安装前会核对官方签名", "install": "安装", "update": "更新", "uninstall": "卸载", "installedEnabled": "已安装 · 已启用", "installedDisabled": "已安装 · 未启用", "desktopOnly": "仅电脑版", "desktopOnlySection": "以下 {{count}} 个模组需要电脑版（含 Node 入口）", "official": "官方", "community": "社区", "installed": "已安装「{{name}}」，在上方列表中启用", "uninstalled": "已卸载「{{name}}」", "uninstallConfirm": "卸载模组「{{name}}」并删除它保存的数据？", "hashMismatch": "下载的文件与市场登记的校验值不符，已取消安装", "downloadFailed": "下载失败：{{value}}", "catalogFailed": "无法读取模组市场：{{value}}", "emptyHint": "从下方的模组市场安装"},
     "systemOffTitle": "模组系统未开启",
     "systemOffHint": "打开上方的模组系统开关后，这里会列出已安装的模组。",
     "count_one": "{{count}} 个模组",
@@ -1150,6 +1151,7 @@ export default {
     "cacheCleared": "已清空「{{name}}」的缓存，释放了 {{size}}",
     "cacheClearedUncounted": "已清空「{{name}}」的缓存",
     "errors": {
+      "android-main-entry": "这个模组含 Node 入口，只能在电脑版运行",
       "no-electron-bridge": "当前环境不支持模组系统",
       "open-directory-failed": "无法打开模组目录：{{value}}",
       "install-no-path": "无法读取丢弃文件的位置",

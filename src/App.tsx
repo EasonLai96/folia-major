@@ -1653,8 +1653,8 @@ export default function App() {
         isNowPlayingControlDisabled,
         stageActiveEntryKind,
     ]);
-    // Android App：系统栏与返回键；播放页收起系统栏（浏览器和桌面版不做事）。
-    useCapacitorShell(isDaylight, isPlayerView);
+    // Android App：系统栏与返回键；整个应用收起系统栏，换页时再收一次（浏览器和桌面版不做事）。
+    useCapacitorShell(isDaylight, currentView);
     // 播放页空闲时连指针一起隐藏。复用控制栏的自动隐藏时钟（3 秒无鼠标移动），不新开计时器：
     // 只有「自动隐藏」模式下才成立，`always-hidden` 是常驻隐藏、没有唤回时机，不参与。
     // 点击穿透（桌面宠物）也排除：那种状态下控制栏被钉成隐藏、鼠标移动不再唤回，跟着它走会把

@@ -16,9 +16,35 @@ import type {
 // degrades to a safe fallback on the web build so the panel stays renderable
 // even when no Electron bridge exists (the UI then shows a desktop-only hint).
 
-const bridge = (): NonNullable<typeof window.electron>['mods'] => window.electron?.mods;
+const electronBridge = (): NonNullable<typeof window.electron>['mods'] => window.electron?.mods;
 
-export const isModsBridgeAvailable = (): boolean => Boolean(window.electron?.mods);
+type ModsBridge = NonNullable<typeof window.electron>['mods'];
+
+// Android App 没有主进程：同一组调用由 src/mods/android/androidModBridge.ts 在页面里做（只跑 client 入口），
+// 由它在启动时注册进来。这里不 import 它，免得桌面版、浏览器和模组的 services 闭包带上 Capacitor 与设置 store。
+let hostBridge: ModsBridge | undefined;
+
+/** 注册非 Electron 的模组宿主（Android App）；桌面版的 preload 桥始终优先。 */
+export const setModsHostBridge = (next: ModsBridge | undefined): void => {
+    hostBridge = next;
+    hostBridgeListeners.forEach(listener => listener());
+};
+
+// 读「桥在不在」的 store 可能比注册更早建立（import 顺序），注册时通知它们重读。
+const hostBridgeListeners = new Set<() => void>();
+
+/** 订阅宿主桥的注册；返回取消订阅。 */
+export const onModsHostBridgeChange = (listener: () => void): (() => void) => {
+    hostBridgeListeners.add(listener);
+    return () => hostBridgeListeners.delete(listener);
+};
+
+const bridge = (): ModsBridge => electronBridge() ?? hostBridge;
+
+export const isModsBridgeAvailable = (): boolean => Boolean(bridge());
+
+/** 模组跑在 Android App 里（只有 client 入口、装市场的 zip，没有模组目录和 ffmpeg）。 */
+export const isAndroidModHost = (): boolean => !electronBridge() && Boolean(hostBridge);
 
 const EMPTY_PAYLOAD: ModsListPayload = {
     mods: [],

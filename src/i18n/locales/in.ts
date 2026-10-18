@@ -1077,6 +1077,7 @@ export default {
     "enabled": "Aktif",
     "disabled": "Nonaktif",
     "desktopOnly": "Mod hanya tersedia di aplikasi desktop.",
+    "android": {"marketHint": "Mod yang hanya punya entri klien bisa dipasang dan dijalankan di ponsel; tanda tangan resmi diperiksa sebelum dipasang", "install": "Pasang", "update": "Perbarui", "uninstall": "Copot", "installedEnabled": "Terpasang · aktif", "installedDisabled": "Terpasang · nonaktif", "desktopOnly": "Khusus desktop", "desktopOnlySection": "{{count}} mod berikut butuh aplikasi desktop (punya entri Node)", "official": "Resmi", "community": "Komunitas", "installed": "\"{{name}}\" terpasang; aktifkan di daftar di atas", "uninstalled": "\"{{name}}\" dicopot", "uninstallConfirm": "Copot \"{{name}}\" dan hapus data yang disimpannya?", "hashMismatch": "Unduhan tidak cocok dengan checksum di pasar; pemasangan dibatalkan", "downloadFailed": "Gagal mengunduh: {{value}}", "catalogFailed": "Tidak bisa membaca pasar mod: {{value}}", "emptyHint": "Pasang dari pasar mod di bawah"},
     "systemOffTitle": "Sistem mod nonaktif",
     "systemOffHint": "Aktifkan sakelar sistem mod di atas, lalu mod yang terpasang akan tampil di sini.",
     "count_one": "{{count}} mod",
@@ -1150,6 +1151,7 @@ export default {
     "cacheCleared": "Cache \"{{name}}\" dibersihkan, {{size}} dibebaskan",
     "cacheClearedUncounted": "Cache \"{{name}}\" dibersihkan",
     "errors": {
+      "android-main-entry": "Mod ini punya entri Node dan hanya berjalan di aplikasi desktop",
       "no-electron-bridge": "Sistem mod tidak tersedia di lingkungan ini",
       "open-directory-failed": "Gagal membuka folder mod: {{value}}",
       "install-no-path": "Tidak dapat membaca lokasi berkas yang diseret",

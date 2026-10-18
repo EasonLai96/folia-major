@@ -32,6 +32,7 @@ import { useLatticeSettingsStore } from '../../../stores/useLatticeSettingsStore
 import { resolveWallHandoffRole, useWallHandoffStore } from '../../../stores/useWallHandoffStore';
 import { useLatticeWallHandoff } from './useLatticeWallHandoff';
 import { wallIsLeftForPage } from './wallLayer';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 // Draggable poster field: one greedily packed block template repeats over the wall's list
 // (the play queue). The explore page's entries are laid out by the page's sections instead,
@@ -65,6 +66,9 @@ const MAX_RESERVED_VIEWPORTS = 3;
 const ENTRANCE_STAGGER = 0.03;
 const ENTRANCE_MAX_DELAY = 0.34;
 const ENTRANCE_WINDOW = 1100;
+// Android App 不跑逐张的入场波和退场波：几十张海报同时各跑一个缩放、位移、淡入的弹簧，手机上进出拼贴时
+// 掉到三四十毫秒一帧（实机测过）。海报改为原地淡入，离开时整层一起淡出（wallLayer.ts）；展开、相机飞行照旧。
+const SKIPS_TILE_WAVES = isCapacitorAndroid();
 const METRICS: WallMetrics = { cellSize: CELL_SIZE, gap: GAP };
 // Longest edge a card can reach, which is the gear expansion hands it.
 const EXPANDED_SIZE = EXPANSION_SPAN.cols * (CELL_SIZE + GAP) - GAP;
@@ -120,6 +124,11 @@ export default function PosterWall({
     useEffect(() => {
         if (opened) hasDrawnRef.current = true;
     }, [opened]);
+    // Android App：第一次画出的海报原地出现（不各自淡入缩放），整面墙由 Lattice.css 整层淡入。
+    const firstDrawInPlaceRef = useRef(SKIPS_TILE_WAVES);
+    useEffect(() => {
+        if (measured) firstDrawInPlaceRef.current = false;
+    }, [measured]);
     // Camera scale, mirrored into state only so posters can size their artwork. It follows the
     // width breakpoints, so this settles after the first measure and then only moves on a resize.
     const [cameraScale, setCameraScale] = useState(() => cameraRef.current.scale);
@@ -211,7 +220,7 @@ export default function PosterWall({
 
     useEffect(() => {
         if (!measured || entranceDone) return;
-        if (reducedMotion || entranceSuppressed) {
+        if (reducedMotion || entranceSuppressed || SKIPS_TILE_WAVES) {
             setEntranceDone(true);
             return;
         }
@@ -222,7 +231,7 @@ export default function PosterWall({
     // Posters landing in the opening wave are held back by their distance from that corner; once
     // the wave is over every poster mounts in place, so panning never replays it.
     const getEntranceDelay = useCallback((rect: { x: number; y: number }) => {
-        if (entranceDone || reducedMotion || entranceSuppressed) return null;
+        if (entranceDone || reducedMotion || entranceSuppressed || SKIPS_TILE_WAVES) return null;
         const steps = Math.max(0, rect.x - bounds.left) + Math.max(0, rect.y - bounds.top);
         return Math.min(ENTRANCE_MAX_DELAY, (steps / (CELL_SIZE + GAP)) * ENTRANCE_STAGGER);
     }, [bounds.left, bounds.top, entranceDone, entranceSuppressed, reducedMotion]);
@@ -240,7 +249,7 @@ export default function PosterWall({
     // No wave where the wall is left for a collection's page: it fades as a whole then, in a
     // moment (wallLayer.ts), under the cover that flies from its tile.
     const getExitDelay = useCallback((rect: { x: number; y: number }) => {
-        if (wallIsLeftForPage()) return null;
+        if (wallIsLeftForPage() || SKIPS_TILE_WAVES) return null;
         const { bounds: corner, reducedMotion: reduced } = exitWaveRef.current;
         if (reduced) return 0;
         const steps = Math.max(0, rect.x - corner.left) + Math.max(0, rect.y - corner.top);
@@ -448,7 +457,7 @@ export default function PosterWall({
                             part={heading.part + 1}
                             parts={heading.parts}
                             entranceDelay={getEntranceDelay(heading)}
-                            mountsInPlace={!hasDrawnRef.current}
+                            mountsInPlace={!hasDrawnRef.current || firstDrawInPlaceRef.current}
                             getExitDelay={getExitDelay}
                             reducedMotion={reducedMotion}
                         />
@@ -470,7 +479,7 @@ export default function PosterWall({
                             pixelScale={pixelScale}
                             expandedSize={EXPANDED_SIZE}
                             entranceDelay={getEntranceDelay(rect)}
-                            mountsInPlace={!hasDrawnRef.current}
+                            mountsInPlace={!hasDrawnRef.current || firstDrawInPlaceRef.current}
                             getExitDelay={getExitDelay}
                             handoff={handoff.getPosterHandoff(instance.instanceId, rect)}
                             expanded={expanded}

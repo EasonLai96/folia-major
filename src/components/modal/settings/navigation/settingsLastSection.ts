@@ -26,7 +26,7 @@ export interface SettingsSectionAvailability {
 export const getAvailableSettingsSectionIds = ({ isElectron, isAndroidApp = false }: SettingsSectionAvailability): SettingsSectionId[] => (
     SETTINGS_NAV_GROUP_SPECS
         .flatMap(group => group.sections)
-        .filter(section => !section.electronOnly || isElectron)
+        .filter(section => !section.electronOnly || isElectron || (section.alsoOnAndroid && isAndroidApp))
         .filter(section => !(section.hiddenOnAndroid && isAndroidApp))
         .map(section => section.id)
 );

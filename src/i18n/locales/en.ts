@@ -1077,6 +1077,7 @@ export default {
     "enabled": "Enabled",
     "disabled": "Disabled",
     "desktopOnly": "Mods are available in the desktop app only.",
+    "android": {"marketHint": "Mods with only a client entry install and run on the phone; official signatures are checked before install", "install": "Install", "update": "Update", "uninstall": "Uninstall", "installedEnabled": "Installed · enabled", "installedDisabled": "Installed · disabled", "desktopOnly": "Desktop only", "desktopOnlySection": "These {{count}} mods need the desktop app (they have a Node entry)", "official": "Official", "community": "Community", "installed": "Installed \"{{name}}\"; enable it in the list above", "uninstalled": "Uninstalled \"{{name}}\"", "uninstallConfirm": "Uninstall \"{{name}}\" and delete the data it saved?", "hashMismatch": "The download does not match the checksum listed in the market; install cancelled", "downloadFailed": "Download failed: {{value}}", "catalogFailed": "Could not read the mod market: {{value}}", "emptyHint": "Install one from the mod market below"},
     "systemOffTitle": "The mod system is off",
     "systemOffHint": "Turn on the mod system switch above and your installed mods will be listed here.",
     "count_one": "{{count}} mod",
@@ -1150,6 +1151,7 @@ export default {
     "cacheCleared": "Cleared the cache of \"{{name}}\", freeing {{size}}",
     "cacheClearedUncounted": "Cleared the cache of \"{{name}}\"",
     "errors": {
+      "android-main-entry": "This mod has a Node entry and only runs in the desktop app",
       "no-electron-bridge": "Mod system is unavailable in this environment",
       "open-directory-failed": "Could not open the mods folder: {{value}}",
       "install-no-path": "Could not read the dropped file's location",

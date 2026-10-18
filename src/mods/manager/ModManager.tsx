@@ -10,6 +10,8 @@ import { useDesktopSettingsStore } from '../../stores/useDesktopSettingsStore';
 import { openOutsideLink, opensThroughDesktopApp } from '../../utils/system/outsideLink';
 import { ModListItem, translateModError } from './ModListItem';
 import { useModCosts } from './modCost';
+import { isAndroidModHost } from '../ipc';
+import { AndroidModMarket } from './AndroidModMarket';
 import type { ModManagerClasses } from './modManagerClasses';
 
 // src/mods/manager/ModManager.tsx
@@ -65,6 +67,8 @@ export const ModManager: React.FC<ModManagerProps> = ({ classes, isDaylight, the
     // whole panel; combined with pointer-events-none on the overlay it stays steady.
     const dragDepthRef = useRef(0);
     const canInstall = bridgeAvailable && modSystemEnabled;
+    // Android App：没有模组目录、ffmpeg 和拖放，装模组走内置的市场。
+    const androidHost = isAndroidModHost();
 
     // The main process loads or unloads every mod when the master switch flips, so the list is
     // re-read then as well as on mount.
@@ -240,16 +244,18 @@ export const ModManager: React.FC<ModManagerProps> = ({ classes, isDaylight, the
                     {t('mods.count', { count: mods.length })}
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                    {marketLink}
-                    <button
-                        type="button"
-                        onClick={() => { void handleOpenDirectory(); }}
-                        className={`${toolbarButtonClass} ${classes.ghostButton}`}
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        <FolderOpen size={12} />
-                        {t('mods.openDirectory')}
-                    </button>
+                    {androidHost ? null : marketLink}
+                    {androidHost ? null : (
+                        <button
+                            type="button"
+                            onClick={() => { void handleOpenDirectory(); }}
+                            className={`${toolbarButtonClass} ${classes.ghostButton}`}
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            <FolderOpen size={12} />
+                            {t('mods.openDirectory')}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => (selectionMode ? exitSelectionMode() : setSelectionMode(true))}
@@ -296,7 +302,7 @@ export const ModManager: React.FC<ModManagerProps> = ({ classes, isDaylight, the
                 </div>
             ) : null}
 
-            {!ffmpeg.available ? (
+            {!ffmpeg.available && !androidHost ? (
                 <button
                     type="button"
                     onClick={() => { void refreshFfmpeg(); }}
@@ -371,13 +377,15 @@ export const ModManager: React.FC<ModManagerProps> = ({ classes, isDaylight, the
                     <div className="px-4 py-8 flex flex-col items-center gap-2 text-center" style={{ color: 'var(--text-secondary)' }}>
                         <Upload size={22} className="opacity-50" />
                         <span className="text-sm opacity-70">{t('mods.empty')}</span>
-                        <span className="text-xs opacity-50">{t('mods.dropZipHint')}</span>
+                        <span className="text-xs opacity-50">{androidHost ? t('mods.android.emptyHint') : t('mods.dropZipHint')}</span>
                         {directories.length > 0 ? (
                             <span className="mt-1 break-all font-mono text-[10px] opacity-40">{directories[0]}</span>
                         ) : null}
                     </div>
                 ) : null}
             </div>
+
+            {androidHost ? <AndroidModMarket classes={classes} onNotice={setNotice} /> : null}
 
             {logs.length > 0 ? (
                 <div className={`rounded-xl border px-4 py-3 flex flex-col gap-1 text-left ${classes.card}`} style={{ color: 'var(--text-secondary)' }}>
