@@ -1,6 +1,7 @@
 // src/components/wall/wallView.ts
 
 import type { Bounds } from './layout';
+import { nativeDevicePixelRatio } from '../../platform/androidPowerProfile';
 
 // Viewport <-> world conversions for the fixed-world wall. The pure geometry here talks about the
 // world point under the seam line (the "view centre"); the DOM camera is a translation plus scale.
@@ -29,7 +30,9 @@ export const getViewLineX = (view: WallView) => view.lineX ?? view.width / 2;
  * a drag or a camera tween. Moving in whole device pixels keeps that fraction fixed, so panning only moves
  * tiles, the same way the browser snaps its own scroll offsets.
  */
-export const formatWorldTransform = (x: number, y: number, scale: number, devicePixelRatio = window.devicePixelRatio || 1) => {
+// Snaps to the screen's real pixels: on Android the reported ratio is capped (androidPowerProfile.ts),
+// and snapping to the capped grid lands on fractional device pixels, which re-rasters the wall.
+export const formatWorldTransform = (x: number, y: number, scale: number, devicePixelRatio = nativeDevicePixelRatio() || 1) => {
     const snap = (value: number) => Math.round(value * devicePixelRatio) / devicePixelRatio;
     return `translate3d(${snap(x)}px, ${snap(y)}px, 0) scale(${scale})`;
 };

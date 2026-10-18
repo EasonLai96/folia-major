@@ -10,6 +10,7 @@ import { createWallWheelClassifier, stepWallWheel, wallWheelDelta, WALL_PAN_INER
 // 鼠标滚轮平滑、触控板直接跟手（判别与参数见 wallPanMotion.ts）。平滑滚动占用共享的 animationRef，
 // 所以 panTo / bravais 的补间、按下拖动、键盘输入一开始就会把它停在原地；降低动效时滚轮也一帧到位。
 
+// 超过这段距离才算拖动。拖动开始时墙从按下的那一点起跟手（见 onPointerMove），不会先跳这一段。
 const DRAG_THRESHOLD_PX = 7;
 const CULL_EDGE_MARGIN_PX = 180;
 // 两下 wheel 之间隔得比这短就算同一次手势（触控板 / 惯性约 16ms 一下；停手再滚是新手势，按光标下面的东西重新算）。

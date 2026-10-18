@@ -16,6 +16,8 @@ export const installAndroidPowerProfile = (): void => {
     const nativeRatio = window.devicePixelRatio || 1;
     if (nativeRatio <= ANDROID_MAX_DEVICE_PIXEL_RATIO) return;
     try {
+        // 留一份真值：海报墙按它把平移对齐到真实像素，用封顶后的值会落在半个像素上，每帧都要重画整面墙。
+        (window as Window & { __foliaNativeDevicePixelRatio?: number }).__foliaNativeDevicePixelRatio = nativeRatio;
         Object.defineProperty(window, 'devicePixelRatio', {
             configurable: true,
             get: () => Math.min(ANDROID_MAX_DEVICE_PIXEL_RATIO, nativeRatio),
@@ -29,4 +31,11 @@ export const installAndroidPowerProfile = (): void => {
 /** 着色器背景的像素预算：Android App 里压到省电档，其他环境照传入的值。 */
 export const shaderPixelBudget = (desktopBudget: number): number => (
     isCapacitorAndroid() ? Math.min(desktopBudget, ANDROID_SHADER_PIXEL_BUDGET) : desktopBudget
+);
+
+/** 屏幕真实的像素密度（不受上面的封顶影响），给要对齐物理像素的地方用。 */
+export const nativeDevicePixelRatio = (): number => (
+    (window as Window & { __foliaNativeDevicePixelRatio?: number }).__foliaNativeDevicePixelRatio
+    ?? window.devicePixelRatio
+    ?? 1
 );
