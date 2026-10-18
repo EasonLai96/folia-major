@@ -50,6 +50,10 @@
 
 .lattice-root.is-daylight::after { opacity: 0.07; }
 
+/* Android App 不画颗粒：全屏 soft-light 混合叠在会动的墙上，每移一帧都要把整屏重新混合一遍，
+   实机甩动时从约 115 帧掉到约 50 帧（2026-10 实测）。颗粒很淡，去掉看不太出来。 */
+html[data-runtime='capacitor-android'] .lattice-root::after { display: none; }
+
 /* Edge falloff over the posters. Sits under the header, the hint and the panel button (z-index 4
    and 5) so chrome never dims, and stays deliberately shallow: the wall is a browsing surface, and
    a heavy vignette would fight the artwork it is there to show. */
