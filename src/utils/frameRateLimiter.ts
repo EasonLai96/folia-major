@@ -39,6 +39,18 @@ export const parseVisualizerFrameRate = (value: string | null): VisualizerFrameR
     return isVisualizerFrameRate(parsed) ? parsed : 'off';
 };
 
+/**
+ * The stored frame rate; with nothing stored, the build's default (VITE_DEFAULT_VISUALIZER_FRAME_RATE —
+ * the Android app build sets 60), else 'off'. A stored choice always wins.
+ */
+export const readVisualizerFrameRateSetting = (saved: string | null): VisualizerFrameRate => {
+    if (saved === null) {
+        const buildDefault = String(import.meta.env?.VITE_DEFAULT_VISUALIZER_FRAME_RATE || '');
+        if (buildDefault) return parseVisualizerFrameRate(buildDefault);
+    }
+    return parseVisualizerFrameRate(saved);
+};
+
 // Decides whether a RAF tick should run under the configured FPS cap.
 export const shouldProcessFrameAtRate = (
     timestampMs: number,
@@ -190,7 +202,7 @@ export const installGlobalVisualizerFrameRateLimiter = (overrideFrameRate?: Visu
     }
 
     const initialFrameRate = overrideFrameRate
-        ?? parseVisualizerFrameRate(window.localStorage.getItem(VISUALIZER_FRAME_RATE_STORAGE_KEY));
+        ?? readVisualizerFrameRateSetting(window.localStorage.getItem(VISUALIZER_FRAME_RATE_STORAGE_KEY));
     if (initialFrameRate === 'off') {
         restoreGlobalVisualizerFrameRateLimiter();
         return;

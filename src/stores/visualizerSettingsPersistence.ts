@@ -10,7 +10,7 @@ import {
     isBuiltinVisualizerMode,
 } from '../types/visualizerModes';
 import type { StoredTuning } from '../components/visualizer/tuningDefinition';
-import { parseVisualizerFrameRate, VISUALIZER_FRAME_RATE_STORAGE_KEY } from '../utils/frameRateLimiter';
+import { readVisualizerFrameRateSetting, VISUALIZER_FRAME_RATE_STORAGE_KEY } from '../utils/frameRateLimiter';
 
 export const VISUALIZER_OPACITY_STORAGE_KEY = 'visualizer_opacity';
 
@@ -89,7 +89,8 @@ export const readStoredVisualizerFrameRate = (): VisualizerFrameRate => {
         return 'off';
     }
 
-    return parseVisualizerFrameRate(localStorage.getItem(VISUALIZER_FRAME_RATE_STORAGE_KEY));
+    // 没存过时用构建默认值（Android App 构建设成 60）；存过就照用户的。
+    return readVisualizerFrameRateSetting(localStorage.getItem(VISUALIZER_FRAME_RATE_STORAGE_KEY));
 };
 
 export const readStoredVisualizerBackgroundMode = (): VisualizerBackgroundMode | null => {
