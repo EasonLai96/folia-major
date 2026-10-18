@@ -16,7 +16,7 @@
 
 ## Android 實機示範
 
-https://github.com/user-attachments/assets/0a6afa6d-4196-4091-a2f7-ee77a161afc6
+https://github.com/user-attachments/assets/2d2cabce-9477-4471-a454-2f5a22deaf8f
 
 [下載原始影片](https://raw.githubusercontent.com/EasonLai96/folia-major/android/docs/media/folia-android-demo.mp4)
 
