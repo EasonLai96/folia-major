@@ -43,6 +43,20 @@ describe('style transition layers', () => {
         expect(modes(left(backToA))).toEqual(['classic']);
     });
 
+    it('ends a change called back while the new one comes in: the one leaving stays, the new one leaves over it', () => {
+        const toB = nextShownLayers(first, mode('diorama'), true, false);
+        const back = nextShownLayers(toB, mode('classic'), true, true);
+        expect(modes(back)).toEqual(['classic', 'diorama (leaving)']);
+        expect(back.map(style => style.key)).toEqual([0, 1]);
+        expect(back.map(style => style.waits)).toEqual([false, false]);
+        expect(modes(left(back))).toEqual(['classic']);
+        expect(nextShownLayers(back, mode('classic'), true, true)).toBe(back);
+        const again = nextShownLayers(back, mode('diorama'), true, true);
+        expect(modes(again)).toEqual(['classic (leaving)', 'diorama']);
+        expect(again.map(style => style.key)).toEqual([0, 2]);
+        expect(modes(nextShownLayers(back, mode('lumiere'), true, true))).toEqual(['classic (leaving)', 'lumiere']);
+    });
+
     it('cuts to the new style without a transition, and ends one still playing when they are turned off', () => {
         const cut = nextShownLayers(first, mode('diorama'), false, false);
         expect(modes(cut)).toEqual(['diorama']);

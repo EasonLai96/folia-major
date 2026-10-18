@@ -88,12 +88,13 @@ const BackgroundLayer: React.FC<BackgroundLayerProps> = ({ background, inputs, n
     // Followed while they are this background's own and it is on screen; kept once it leaves (the
     // inputs given then are the next background's: another type, the next song). Kept too while a
     // style switch waits: what the new style changes in place (Fume hiding the shapes) comes with its
-    // transition, not before it. Kept in a ref the commit writes, so following them sets no state. Only
-    // what it draws of the song and its config are kept: pausing, the theme and the sound reach it still.
+    // transition, not before it. Kept in a ref the commit writes, so following them sets no state. What
+    // it draws of the song, its config and the theme are kept: the theme is the song's too (a blend's
+    // next song brings its own while this one still shows). Pausing and the sound reach it still.
     const keeps = leaving || styleWaits || value !== now;
     const drawnRef = useRef(inputs);
     const kept = drawnRef.current;
-    const drawn = keeps ? { ...inputs, config: kept.config, coverUrl: kept.coverUrl, seed: kept.seed } : inputs;
+    const drawn = keeps ? { ...inputs, config: kept.config, coverUrl: kept.coverUrl, seed: kept.seed, theme: kept.theme } : inputs;
     useLayoutEffect(() => {
         drawnRef.current = drawn;
     });
@@ -171,19 +172,21 @@ const VisualizerBackgroundTransition: React.FC<VisualizerBackgroundTransitionPro
     const shown = useDeferredValue(now);
     const [backgrounds, onLeft, onStart] = useShownLayers(shown, animate, animate);
     const under = useMemo(() => (transition ? underNext(transition) : null), [transition]);
-    // A background going to none fades out as the style switch's own; one with another coming stays under it.
-    const nextDrawn = backgrounds[backgrounds.length - 1].value !== null;
+    // A background going to none fades out as the style switch's own; one with another coming over it
+    // stays under it. One drawn over the background on screen (a change called back) fades out over it.
+    const onScreen = backgrounds.findIndex(background => !background.leaving);
+    const nextDrawn = onScreen >= 0 && backgrounds[onScreen].value !== null;
 
     // Oldest first: the new background is drawn over the leaving one.
     return (
         <>
-            {backgrounds.map(background => (
+            {backgrounds.map((background, index) => (
                 <BackgroundLayer
                     key={background.key}
                     background={background}
                     inputs={inputs}
                     now={now}
-                    transition={background.leaving && nextDrawn ? under : transition}
+                    transition={background.leaving && nextDrawn && index < onScreen ? under : transition}
                     styleWaits={waits}
                     onLeft={onLeft}
                     onStart={onStart}

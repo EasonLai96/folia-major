@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import type { MotionValue } from 'framer-motion';
 import * as twgl from 'twgl.js';
 import { Theme } from '../../../../types';
 import { parseColorChannels } from '../../colorMix';
@@ -14,6 +15,8 @@ interface SoraBackgroundProps {
   paused?: boolean;
   /** How long new theme colours take to blend in (useBlendedColors); 0 or left out, at once. */
   blendMs?: number;
+  /** Where given, the blend plays along this instead (useBlendedColors). */
+  blendProgress?: MotionValue<number>;
 }
 
 const PARTICLE_COUNT = 150;
@@ -89,14 +92,14 @@ void main() {
 }
 `;
 
-const SoraBackground: React.FC<SoraBackgroundProps> = ({ theme, isDaylight, paused = false, blendMs = 0 }) => {
+const SoraBackground: React.FC<SoraBackgroundProps> = ({ theme, isDaylight, paused = false, blendMs = 0, blendProgress }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const timeRef = useRef<number>(0);
   const invalidateRef = useRef<(() => void) | null>(null);
   // A new song's colours blend in where the host plays transitions: a second copy of the canvas for the
   // soft focus would compile its program again on every song change.
-  const [primaryColor, accentColor] = useBlendedColors([theme.primaryColor, theme.accentColor], blendMs);
+  const [primaryColor, accentColor] = useBlendedColors([theme.primaryColor, theme.accentColor], blendMs, blendProgress);
 
   const primaryColorChannels = parseColorChannels(primaryColor) || 
     (isDaylight ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 });

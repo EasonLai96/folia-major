@@ -41,6 +41,7 @@
 | 64+ | `src/components/modal/settings/kit/index.ts` |
 | 64+ | `src/library/core/suite/suite.contract.ts` |
 | 64+ | `src/mods/folium/contract.ts` |
+| 64+ | `src/services/db.ts` |
 | 64+ | `src/services/onlineMusic/omni.ts` |
 | 64+ | `src/stores/usePlaybackStore.ts` |
 | 64+ | `src/stores/useStatusMessageStore.ts` |
@@ -48,6 +49,7 @@
 | 32+ | `src/components/modal/settings/kit/motion.ts` |
 | 32+ | `src/components/visualizer/colorMix.ts` |
 | 32+ | `src/components/visualizer/definition.ts` |
+| 32+ | `src/components/visualizer/registry.tsx` |
 | 32+ | `src/components/wall/wallSlots.ts` |
 | 32+ | `src/i18n/config.ts` |
 | 32+ | `src/library/core/account/account.contract.ts` |
@@ -56,7 +58,6 @@
 | 32+ | `src/library/core/home/homeModel.contract.ts` |
 | 32+ | `src/library/suites/bravais/bravaisLayer.ts` |
 | 32+ | `src/services/baseThemes.ts` |
-| 32+ | `src/services/db.ts` |
 | 32+ | `src/services/onlineMusic/providerRegistry.ts` |
 | 32+ | `src/services/onlineMusic/songMetadata.ts` |
 | 32+ | `src/stores/motionSignals.ts` |
@@ -85,7 +86,6 @@
 - `dev/probes/activeGridMarker.probe.tsx`
 - `dev/probes/artistEntrance.probe.tsx`
 - `dev/probes/audioEffectGrid.probe.tsx`
-- `dev/probes/automixModelReminder.probe.tsx`
 - `dev/probes/automixTransitionSwitches.probe.tsx`
 - `dev/probes/bravaisKinds.probe.tsx`
 - `dev/probes/bravaisPerf.probe.tsx`

@@ -9,7 +9,7 @@ import RemoteKeyRow from './RemoteKeyRow';
 import RemoteLyricBlock from './RemoteLyricBlock';
 import RemoteProgressLine from './RemoteProgressLine';
 import RemoteSheet from './RemoteSheet';
-import RemoteSongLine, { RemoteCoverFaces } from './RemoteSongLine';
+import RemoteSongLine, { RemoteCoverFaces, RemoteOutgoingRecede } from './RemoteSongLine';
 import RemoteWindowTools, { type RemoteBackgroundMode } from './RemoteWindowTools';
 import {
     REMOTE_DRAG_STYLE,
@@ -83,6 +83,10 @@ const RemoteControlApp: React.FC = () => {
     const lyricOffsetSec = (snapshot.lyricOffsetMs || 0) / 1000;
     const lyric = useRemoteLyricLine(snapshot.hasTrack ? snapshot.lyrics : null, clock, lyricOffsetSec);
     const handoff = useRemoteTrackHandoff({ snapshot, title, artist, isPlaying });
+    // Past the audio crossover the outgoing song's line has receded: the stage turns to the incoming
+    // song's title card there, inside the blend, rather than when the blend settles.
+    const lyricGivesWay = handoff.isHandoffActive && handoff.isIncomingDominant;
+    const shownLine = lyricGivesWay ? null : lyric.line;
     useRemoteCoverArt({
         prevTrackCoverUrl: snapshot.prevTrackCoverUrl,
         nextTrackCoverUrl: snapshot.nextTrackCoverUrl,
@@ -159,16 +163,18 @@ const RemoteControlApp: React.FC = () => {
                     )}
 
                     <div ref={stageRef} className="remote-stage" aria-hidden={sheet.isOpen}>
-                        <RemoteSongLine mode={lyric.line ? 'line' : 'card'} handoff={handoff} reduceMotion={reduceMotion} />
-                        <RemoteLyricBlock
-                            line={lyric.line}
-                            nextLine={lyric.nextLine}
-                            isSinging={lyric.isSinging}
-                            subtitleContentMode={snapshot.subtitleContentMode}
-                            clock={clock}
-                            lyricOffsetSec={lyricOffsetSec}
-                            reduceMotion={reduceMotion}
-                        />
+                        <RemoteSongLine mode={shownLine ? 'line' : 'card'} handoff={handoff} reduceMotion={reduceMotion} />
+                        <RemoteOutgoingRecede handoff={handoff} reduceMotion={reduceMotion}>
+                            <RemoteLyricBlock
+                                line={shownLine}
+                                nextLine={lyricGivesWay ? null : lyric.nextLine}
+                                isSinging={lyric.isSinging}
+                                subtitleContentMode={snapshot.subtitleContentMode}
+                                clock={clock}
+                                lyricOffsetSec={lyricOffsetSec}
+                                reduceMotion={reduceMotion}
+                            />
+                        </RemoteOutgoingRecede>
                     </div>
 
                     <AnimatePresence>

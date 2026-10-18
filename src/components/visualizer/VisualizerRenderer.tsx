@@ -1,6 +1,7 @@
-import React, { useDeferredValue, useLayoutEffect } from 'react';
+import React, { useDeferredValue, useLayoutEffect, useMemo } from 'react';
 import { type VisualizerMode } from '../../types';
 import { type VisualizerSharedProps } from './definition';
+import { useHandoffCover } from './useHandoffCover';
 import { getVisualizerRegistryEntry } from './registry';
 import { applyVisualizerTuning } from './tuningRegistry';
 import { DEFAULT_VISUALIZER_BACKGROUND_MODE } from './backgrounds/registry';
@@ -8,6 +9,7 @@ import VisualizerHarmonyOverlay from './VisualizerHarmonyOverlay';
 import VisualizerBackdrop from './VisualizerBackdrop';
 import VisualizerStyleTransition, { useStyleSwitch } from './styleTransition/VisualizerStyleTransition';
 import softFocus from './styleTransition/softFocus';
+import { alongProgress } from './styleTransition/layerTransition';
 import { holdTurns } from './preview/pictureTurns';
 import { useReducedMotionFor } from '../../hooks/useReducedMotionFor';
 
@@ -41,6 +43,22 @@ const VisualizerRenderer: React.FC<VisualizerRendererProps> = ({ mode, animateSt
     // interface motion (the app's own setting, not the system's).
     const reducedMotion = useReducedMotionFor('uiMicroMotion');
     const transition = animateStyleSwitch && !resolvedProps.staticMode && !reducedMotion ? softFocus : null;
+    // A blend's song hand-off, for the style that draws one (VisualizerSongHandoff). The background takes
+    // the incoming song (its cover, seed and theme) when the blend starts, and changes with the transition
+    // of any song change, played along the hand-off: as long as the blend, in step with the song it hands
+    // over to. At the settle its song is already that one, so nothing changes again. Where a switch cuts
+    // there is no hand-off: the song changes at the settle, as everywhere else.
+    const songHandoff = transition ? resolvedProps.songHandoff ?? null : null;
+    const handoffProgress = songHandoff?.progress ?? null;
+    const backgroundTransition = useMemo(
+        () => (transition && handoffProgress ? alongProgress(transition, handoffProgress) : transition),
+        [transition, handoffProgress],
+    );
+    const styleProps = songHandoff || !resolvedProps.songHandoff ? resolvedProps : { ...resolvedProps, songHandoff: null };
+    const backdropCover = useHandoffCover(songHandoff, resolvedProps.seed, resolvedProps.coverUrl);
+    const backdropProps = songHandoff
+        ? { ...styleProps, coverUrl: backdropCover, seed: songHandoff.seed, theme: songHandoff.theme }
+        : backdropCover === styleProps.coverUrl ? styleProps : { ...styleProps, coverUrl: backdropCover };
     // The styles while a switch waits for the new one's first frame and plays: kept here, so a background
     // change made with the switch knows it waits too.
     const styleSwitch = useStyleSwitch(shownMode, transition);
@@ -50,7 +68,7 @@ const VisualizerRenderer: React.FC<VisualizerRendererProps> = ({ mode, animateSt
     useLayoutEffect(() => (switchAsked ? holdTurns() : undefined), [switchAsked]);
     // A style still leaving after a switch is drawn with the props tuned for it.
     const renderStyle = (styleMode: VisualizerMode) => getVisualizerRegistryEntry(styleMode).render(
-        styleMode === shownMode ? resolvedProps : applyVisualizerTuning(styleMode, sharedProps, props.visualizerTunings),
+        styleMode === shownMode ? styleProps : applyVisualizerTuning(styleMode, sharedProps, props.visualizerTunings),
     );
 
     return (
@@ -64,7 +82,7 @@ const VisualizerRenderer: React.FC<VisualizerRendererProps> = ({ mode, animateSt
               * 放同一个过渡，换背景种类也是。
               */}
             <React.Suspense fallback={null}>
-                <VisualizerBackdrop entry={entry} props={resolvedProps} transition={transition} waits={styleSwitch.waits}>
+                <VisualizerBackdrop entry={entry} props={backdropProps} transition={backgroundTransition} waits={styleSwitch.waits}>
                     <VisualizerStyleTransition styleSwitch={styleSwitch} transition={transition} renderStyle={renderStyle} />
                 </VisualizerBackdrop>
             </React.Suspense>

@@ -9,6 +9,7 @@ import LatentBackground from './LatentBackground';
 import LatentBackgroundSettingsCard from './LatentBackgroundSettingsCard';
 import { defineVisualizerBackground } from '../definition';
 import { cycleValue, QuickControlChip, QuickControlToggle } from '../../../shared/QuickControlChip';
+import { BEAT_EFFECT_IDS } from '../../../../services/beatFx/beatEffects';
 
 // src/components/visualizer/backgrounds/latent/entry.tsx
 // Registers the cover-colored, audio-reactive Latent shell background.
@@ -45,8 +46,17 @@ export default defineVisualizerBackground({
         description: 'Switch background to cover-colored audio-reactive shaders',
         keywords: ['latent', 'latent background', 'shader background', '隐现', '隐现背景', '音频响应背景'],
     },
+    // 智能动感模式: the beats replace the band onset in the speed pulse (LatentBackground.tsx).
+    // Retired, its code kept: the user set it aside on 2026-10-17.
+    beatEffects: [{
+        id: BEAT_EFFECT_IDS.latentPulse,
+        nameKey: 'options.beatEffect_latentPulse',
+        descKey: 'options.beatEffect_latentPulseDesc',
+        source: 'beats',
+        retired: true,
+    }],
     // No `song`: a new song's cover colours blend in place (blendMs).
-    render: ({ config, theme, coverUrl, audioPower, audioBands, staticMode, paused, blendMs }) => (
+    render: ({ config, theme, coverUrl, audioPower, audioBands, staticMode, paused, blendMs, blendProgress }) => (
         <LatentBackground
             theme={theme}
             coverUrl={coverUrl}
@@ -56,6 +66,7 @@ export default defineVisualizerBackground({
             paused={paused}
             tuning={config?.latent?.tuning}
             blendMs={blendMs}
+            blendProgress={blendProgress}
         />
     ),
     renderSettingsPanel: ({ config, actions, ...props }) => (

@@ -20,6 +20,8 @@
 // announcement as the fact draws nothing in every one of those cases; one that asks `active` draws
 // correctly in all of them without knowing which case it is in.
 
+import { mapTrackHandoffProgress } from './handoffProgress';
+
 export interface TransitionCue {
     /** Wall-clock seconds from the announcement until the blend is over. */
     seconds: number;
@@ -91,6 +93,18 @@ export const getActiveTransitionCue = (): ActiveTransitionCue | null => {
     const elapsedMs = performance.now() - active.startedAt;
     if (elapsedMs >= active.cue.seconds * 1000) return null;
     return { cue: active.cue, elapsedMs };
+};
+
+/**
+ * How far the song hand-off on screen has come, 0..1 on the shared curve (handoffProgress.ts): 0
+ * before a blend is announced, after it is called off and for a settings preview, and 1 once the
+ * blend's own clock has run out - held there until the settle, unlike `getActiveTransitionCue`,
+ * because a picture that has handed over must not hand back while the settle is on its way.
+ */
+export const getTransitionHandoffProgress = (nowMs = performance.now()): number => {
+    if (!active || active.cue.preview) return 0;
+    if (!(active.cue.seconds > 0)) return 1;
+    return mapTrackHandoffProgress((nowMs - active.startedAt) / (active.cue.seconds * 1000), active.cue.crossover);
 };
 
 /**

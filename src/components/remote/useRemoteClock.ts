@@ -29,7 +29,10 @@ export interface RemoteClock {
 }
 
 type UseRemoteClockParams = {
-    /** Changes with every snapshot, so the clock re-anchors even when the time did not move. */
+    /**
+     * When the main window read `currentTime` (its Date.now()). Changes with every snapshot, so the
+     * clock re-anchors even when the time did not move.
+     */
     updatedAt: number;
     currentTime: number;
     duration: number;
@@ -99,7 +102,11 @@ export const useRemoteClock = ({ updatedAt, currentTime, duration, playerState }
 
     useEffect(() => {
         const state = stateRef.current;
-        state.anchorTime = currentTime;
+        // While playing, the song has moved on since the main window read the time: anchoring to
+        // that time as it is would run the clock back by the trip here at every snapshot that
+        // arrives later than the one before. Both windows share the machine's clock.
+        const sinceReadSec = isPlaying ? Math.max(0, Date.now() - updatedAt) / 1000 : 0;
+        state.anchorTime = currentTime + sinceReadSec;
         state.anchorAt = performance.now();
         state.duration = duration;
         state.isPlaying = isPlaying;

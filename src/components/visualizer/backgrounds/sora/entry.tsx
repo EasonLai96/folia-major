@@ -29,10 +29,10 @@ export default defineVisualizerBackground({
     // No `song`: the stars draw the theme colours only, and blend to new ones in place (blendMs).
     // Blank mode never mounts the WebGL canvas: just a static black (night) / white (daylight) frame.
     // Static mode intentionally freezes the starfield, matching the shared background contract.
-    render: ({ config, theme, isDaylight, paused, staticMode, blendMs }) => (
+    render: ({ config, theme, isDaylight, paused, staticMode, blendMs, blendProgress }) => (
         <div className="absolute inset-0 z-0" style={{ backgroundColor: isDaylight ? '#ffffff' : '#000000' }}>
             {!config?.sora?.tuning?.blank && (
-                <SoraBackground theme={theme} isDaylight={isDaylight} paused={paused || staticMode} blendMs={blendMs} />
+                <SoraBackground theme={theme} isDaylight={isDaylight} paused={paused || staticMode} blendMs={blendMs} blendProgress={blendProgress} />
             )}
         </div>
     ),

@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Line, SubtitleContentMode } from '../../types';
 import {
     buildRemoteLyricSegments,
@@ -17,6 +17,10 @@ import type { RemoteClock } from './useRemoteClock';
 
 const LARGE_LINE_HEIGHT_PX = 26;
 const WHITESPACE_ONLY = /^\s+$/;
+/** How long a pair takes to leave. */
+const EXIT_SEC = 0.18;
+/** The exit starts on the next frame: the pair is swapped one frame after it has gone. */
+const FRAME_MS = 20;
 
 const getLineKey = (line: Line) => `${line.startTime}-${line.endTime}-${line.fullText}`;
 
@@ -131,6 +135,12 @@ const RemoteLyricLine: React.FC<RemoteLyricLineProps> = ({ line, texts, clock, l
     );
 };
 
+type ShownPair = {
+    line: Line;
+    nextLine: Line | null;
+    isSinging: boolean;
+};
+
 type RemoteLyricBlockProps = {
     line: Line | null;
     nextLine: Line | null;
@@ -151,37 +161,67 @@ const RemoteLyricBlock: React.FC<RemoteLyricBlockProps> = ({
     lyricOffsetSec,
     reduceMotion,
 }) => {
+    // The pair on screen. While it leaves it keeps what it had; once it is gone the latest line
+    // comes in, whichever lines came and went meanwhile. A line that comes back while its pair is
+    // leaving turns the pair round.
+    const [shown, setShown] = useState<ShownPair | null>(() => (line ? { line, nextLine, isSinging } : null));
+    const isSameLine = Boolean(shown && line && getLineKey(shown.line) === getLineKey(line));
+    const isLeaving = Boolean(shown) && !isSameLine;
+    if (isSameLine && (shown!.line !== line || shown!.nextLine !== nextLine || shown!.isSinging !== isSinging)) {
+        setShown({ line: line!, nextLine, isSinging });
+    } else if (!shown && line) {
+        // Nothing is leaving: the new pair comes in at once.
+        setShown({ line, nextLine, isSinging });
+    }
+
+    const latestRef = useRef<ShownPair | null>(null);
+    useEffect(() => {
+        latestRef.current = line ? { line, nextLine, isSinging } : null;
+    });
+    // A timer, not the animation's end, swaps the pair: nothing can hold it.
+    useEffect(() => {
+        if (!isLeaving) {
+            return;
+        }
+        const timer = window.setTimeout(() => setShown(latestRef.current), (reduceMotion ? 0 : EXIT_SEC * 1000) + FRAME_MS);
+        return () => window.clearTimeout(timer);
+    }, [isLeaving, reduceMotion]);
+
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+        hasMountedRef.current = true;
+    }, []);
+
     const texts = useMemo(
-        () => resolveRemoteLyricTexts(subtitleContentMode, line, nextLine),
-        [subtitleContentMode, line, nextLine],
+        () => resolveRemoteLyricTexts(subtitleContentMode, shown?.line, shown?.nextLine),
+        [subtitleContentMode, shown],
     );
     const rise = reduceMotion ? 0 : 6;
 
     return (
         <div className="remote-lyric" data-shown={Boolean(line)}>
             {/* 换行：旧的一对先淡出并上移 6px，走完之后新的一对再从下方 6px 进来。两句不叠在一起。 */}
-            <AnimatePresence initial={false} mode="wait">
-                {line && (
-                    <motion.div
-                        key={getLineKey(line)}
-                        className="remote-lyric__pair"
-                        data-dim={!isSinging}
-                        initial={{ opacity: 0, y: rise }}
-                        animate={{
+            {shown && (
+                <motion.div
+                    key={getLineKey(shown.line)}
+                    className="remote-lyric__pair"
+                    data-dim={!shown.isSinging}
+                    initial={hasMountedRef.current ? { opacity: 0, y: rise } : false}
+                    animate={isLeaving
+                        ? {
+                            opacity: 0,
+                            y: -rise,
+                            transition: { duration: reduceMotion ? 0 : EXIT_SEC, ease: 'easeIn' },
+                        }
+                        : {
                             opacity: 1,
                             y: 0,
                             transition: { duration: reduceMotion ? 0 : 0.26, ease: [0.2, 0.8, 0.2, 1] },
                         }}
-                        exit={{
-                            opacity: 0,
-                            y: -rise,
-                            transition: { duration: reduceMotion ? 0 : 0.18, ease: 'easeIn' },
-                        }}
-                    >
-                        <RemoteLyricLine line={line} texts={texts} clock={clock} lyricOffsetSec={lyricOffsetSec} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                >
+                    <RemoteLyricLine line={shown.line} texts={texts} clock={clock} lyricOffsetSec={lyricOffsetSec} />
+                </motion.div>
+            )}
         </div>
     );
 };

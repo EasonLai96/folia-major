@@ -51,6 +51,11 @@ type PlaybackStoreState = {
      */
     isLoadingToPlay: boolean;
     currentLineIndex: number;
+    /**
+     * The incoming track's lyric line while a blend holds the picture; -1 from the blend's start until
+     * the line is known, and the last line after it, until the next blend. Guarded like currentLineIndex.
+     */
+    handoffLineIndex: number;
     playQueue: SongResult[];
     activePlaybackContext: PlaybackContext;
     isFmMode: boolean;
@@ -75,6 +80,7 @@ type PlaybackStoreState = {
     startLoadingToPlay: () => void;
     endLoadingToPlay: () => void;
     setCurrentLineIndex: SetState<number>;
+    setHandoffLineIndex: SetState<number>;
     setPlayQueue: SetState<SongResult[]>;
     setActivePlaybackContext: SetState<PlaybackContext>;
     setIsFmMode: SetState<boolean>;
@@ -103,6 +109,7 @@ export const usePlaybackStore = create<PlaybackStoreState>((set, get) => ({
     playerState: PlayerState.IDLE,
     isLoadingToPlay: false,
     currentLineIndex: -1,
+    handoffLineIndex: -1,
     playQueue: [],
     activePlaybackContext: 'main',
     isFmMode: false,
@@ -122,6 +129,7 @@ export const usePlaybackStore = create<PlaybackStoreState>((set, get) => ({
     startLoadingToPlay: () => set({ playerState: PlayerState.IDLE, isLoadingToPlay: true }),
     endLoadingToPlay: () => set({ isLoadingToPlay: false }),
     setCurrentLineIndex: (next) => set({ currentLineIndex: resolve(next, get().currentLineIndex) }),
+    setHandoffLineIndex: (next) => set({ handoffLineIndex: resolve(next, get().handoffLineIndex) }),
     setPlayQueue: (next) => set({ playQueue: resolve(next, get().playQueue) }),
     setActivePlaybackContext: (next) => set({ activePlaybackContext: resolve(next, get().activePlaybackContext) }),
     setIsFmMode: (next) => set({ isFmMode: resolve(next, get().isFmMode) }),
@@ -146,6 +154,7 @@ export const setPlayerState: SetState<PlayerState> = (next) => usePlaybackStore.
 export const startLoadingToPlay = () => usePlaybackStore.getState().startLoadingToPlay();
 export const endLoadingToPlay = () => usePlaybackStore.getState().endLoadingToPlay();
 export const setCurrentLineIndex: SetState<number> = (next) => usePlaybackStore.getState().setCurrentLineIndex(next);
+export const setHandoffLineIndex: SetState<number> = (next) => usePlaybackStore.getState().setHandoffLineIndex(next);
 export const setPlayQueue: SetState<SongResult[]> = (next) => usePlaybackStore.getState().setPlayQueue(next);
 export const setActivePlaybackContext: SetState<PlaybackContext> = (next) => usePlaybackStore.getState().setActivePlaybackContext(next);
 export const setIsFmMode: SetState<boolean> = (next) => usePlaybackStore.getState().setIsFmMode(next);

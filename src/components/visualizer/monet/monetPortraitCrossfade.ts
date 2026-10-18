@@ -12,6 +12,11 @@ export interface MonetPortraitLayer {
     /** Stable across the promotion to the bottom of the stack, so React keeps the decoded node. */
     key: string;
     src: string;
+    /**
+     * Where the blend's song hand-off stood when this cover's fade along it began; unset for a cover
+     * fading on the clock (MonetPortraitImage's `progress`).
+     */
+    handoffFrom?: number;
 }
 
 /** Default crossfade length. Matches the Monet background layer's own image swap. */
@@ -33,16 +38,26 @@ export const monetPortraitTargetSource = (layers: MonetPortraitLayer[]): string 
 /**
  * Stacks a decoded cover on top. A repeat of the cover already on top is dropped: the effect that
  * decodes re-runs whenever the URL changes, and a URL that changes to itself is not a new cover.
+ *
+ * `handoffAt`, given while a hand-off runs, is where it stands: the cover fades in along it. A
+ * hand-off fades in one cover. A song's cover often comes again at another address while the
+ * hand-off runs (the network copy, then the cached one): the newer one takes the place of the cover
+ * fading along it, from where that one began, so the fade goes on as it was.
  */
 export const pushMonetPortraitLayer = (
     layers: MonetPortraitLayer[],
     src: string,
     key: string,
+    handoffAt?: number,
 ): MonetPortraitLayer[] => {
     if (monetPortraitTargetSource(layers) === src) {
         return layers;
     }
-    const next = [...layers, { key, src }];
+    const top = layers[layers.length - 1];
+    if (handoffAt !== undefined && top?.handoffFrom !== undefined) {
+        return [...layers.slice(0, -1), { key, src, handoffFrom: top.handoffFrom }];
+    }
+    const next = [...layers, handoffAt === undefined ? { key, src } : { key, src, handoffFrom: handoffAt }];
     return next.length > MONET_PORTRAIT_MAX_LAYERS
         ? next.slice(next.length - MONET_PORTRAIT_MAX_LAYERS)
         : next;
@@ -62,3 +77,10 @@ export const settleMonetPortraitLayers = (
     const index = layers.findIndex(layer => layer.key === key);
     return index <= 0 ? layers : layers.slice(index);
 };
+
+/** The stack once the hand-off is over: no cover fades along it any more, nor along the next one. */
+export const endMonetPortraitHandoff = (layers: MonetPortraitLayer[]): MonetPortraitLayer[] => (
+    layers.some(layer => layer.handoffFrom !== undefined)
+        ? layers.map(layer => (layer.handoffFrom === undefined ? layer : { key: layer.key, src: layer.src }))
+        : layers
+);

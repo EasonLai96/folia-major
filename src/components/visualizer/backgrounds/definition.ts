@@ -1,4 +1,5 @@
 import React from 'react';
+import type { BeatEffectDef } from '../../../services/beatFx/beatEffects';
 import type { MotionValue } from 'framer-motion';
 import type {
     AudioBands,
@@ -80,6 +81,8 @@ export interface VisualizerBackgroundRenderProps {
      * 0 or left out where it changes at once.
      */
     blendMs?: number;
+    /** Where given, that blend plays along this (0..1, a blend's song hand-off) instead of over blendMs. */
+    blendProgress?: MotionValue<number>;
 }
 
 export interface VisualizerBackgroundSettingsProps {
@@ -128,6 +131,11 @@ export interface VisualizerBackgroundRegistryEntry {
     renderSettingsPanel?: (props: VisualizerBackgroundSettingsProps) => React.ReactNode;
     renderQuickControls?: (props: VisualizerBackgroundQuickControlsProps) => React.ReactNode;
     resetSettings?: (actions?: VisualizerBackgroundActions) => void;
+    /*
+     * The beat effects this background draws under 智能动感模式, like the visualizer entries' list of
+     * the same name (../definition.ts); Latent's onset pulse following the beats is one (retired).
+     */
+    beatEffects?: readonly BeatEffectDef[];
 }
 
 export interface VisualizerBackgroundEntryModule {

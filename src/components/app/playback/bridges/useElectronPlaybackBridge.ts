@@ -8,7 +8,6 @@ import type {
     PlayerChromeVisibilityMode,
     RemoteControlCommand,
     RemoteControlSnapshot,
-    RemoteTrackTransition,
 } from '../../../../types/remoteControl';
 import type { VideoExportState } from '../../../../types/videoExport';
 import {
@@ -21,7 +20,7 @@ import {
 import { resolveStagePlayerPositionSec } from '../../../../utils/stagePlayerSnapshot';
 import { getPlaybackSongKey, getPlaybackSourceRef } from '../../../../utils/appPlaybackGuards';
 import { omni } from '../../../../services/onlineMusic/omni';
-import { subscribeToTransitionCue } from '../../../../services/automix/transitionCue';
+import { createRemoteTrackTransitionFeed, type RemoteTrackTransitionFeed } from './remoteTrackTransitionFeed';
 import { useStableActionSurface } from '../../../../hooks/useStableCallbacks';
 import { selectDisplayCoverUrl, selectDisplayDuration, selectDisplayLyrics, selectDisplayPlayerState, selectDisplaySong, usePlaybackStore } from '../../../../stores/usePlaybackStore';
 import { useAppChromeStore } from '../../../../stores/useAppChromeStore';
@@ -151,7 +150,7 @@ export const useElectronPlaybackBridge = ({
 
     const [playbackSyncBridgeStatus, setPlaybackSyncBridgeStatus] = useState<ElectronPlaybackSyncBridgeStatus>(() => emptyPlaybackSyncBridgeStatus());
     const pausedByVoiceInputRef = useRef(false);
-    const remoteTrackTransitionRef = useRef<RemoteTrackTransition | null>(null);
+    const remoteTrackTransitionFeedRef = useRef<RemoteTrackTransitionFeed | null>(null);
     const publishTrackTransitionRef = useRef(publishTrackTransition);
     const isTrackTransitionAudibleRef = useRef(isTrackTransitionAudible);
     // 渲染期改 ref 会让被丢弃的那次渲染也留下痕迹；这两个只在事件与定时发布里读，放进 effect 即可。
@@ -174,29 +173,17 @@ export const useElectronPlaybackBridge = ({
         : undefined;
 
     // The cue is event-shaped in the main renderer. Keep only the current low-frequency snapshot
-    // in a ref so the Remote's existing 500ms publisher can carry it without a React render loop.
-    useEffect(() => subscribeToTransitionCue(cue => {
-        // 设置面板的演示 cue 既不是交接的开始也不是结束：真实混音正跑到一半时把它当成
-        // cue 结束会直接取消遥控窗口的交接，所以这里整条忽略。
-        if (cue?.preview) {
-            return;
-        }
-
-        if (
-            cue === null
-            || !publishTrackTransitionRef.current
-            || !isTrackTransitionAudibleRef.current()
-        ) {
-            remoteTrackTransitionRef.current = null;
-            return;
-        }
-
-        remoteTrackTransitionRef.current = {
-            startedAtMs: Date.now(),
-            durationSec: cue.seconds,
-            crossover: cue.crossover,
+    // so the Remote's existing 500ms publisher can carry it without a React render loop.
+    useEffect(() => {
+        const feed = createRemoteTrackTransitionFeed(
+            () => publishTrackTransitionRef.current && isTrackTransitionAudibleRef.current(),
+        );
+        remoteTrackTransitionFeedRef.current = feed;
+        return () => {
+            feed.dispose();
+            remoteTrackTransitionFeedRef.current = null;
         };
-    }), []);
+    }, []);
     const stageSnapshotCacheRef = useRef<{
         playQueue: SongResult[];
         currentSong: SongResult | null;
@@ -289,9 +276,7 @@ export const useElectronPlaybackBridge = ({
                 lyrics,
                 playerChromeVisibilityMode,
                 subtitleContentMode,
-                trackTransition: publishTrackTransitionRef.current && isTrackTransitionAudibleRef.current()
-                    ? remoteTrackTransitionRef.current
-                    : null,
+                trackTransition: remoteTrackTransitionFeedRef.current?.read() ?? null,
             },
         );
         const actions = remoteActions.read();

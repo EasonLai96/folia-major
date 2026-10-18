@@ -95,7 +95,9 @@ App / ThemePark / VisPlayground / OBS source
 
 共享背景 props 与默认值在 `backgrounds/definition.ts`；实际渲染在 `backgrounds/VisualizerBackgroundRenderer.tsx`，由 `VisualizerBackdrop.tsx` 的 `VisualizerBackdropLayers` 挂上（外壳单独用时也是它）。新增背景不要在每个 visualizer 中内联。
 
-背景画的东西跟着歌变时（封面、种子），在 entry 写 `song`，返回它画的那几样（照 `common/entry.tsx`、`monet/entry.tsx`）：这几样变了，换歌时背景整个换成新的一份，在放过渡的宿主里用柔焦换，别处直接换。新的那一份要先读东西（解码封面、做图）时，用 `styleTransition/firstFrame.ts` 的 `useFirstFrameDrawn()`，读好时调它返回的函数（照 `common/FluidBackground.tsx`）；不调的挂上就算好了。主题颜色不写进 `song`：调色时颜色一直在变，主题也常在换歌之后才到，写进去每一步都会挂一份新的。再挂一份很贵的背景（隐现、空：每份都要重新编译着色器）不写 `song`，在原来那一份里把颜色慢慢换过去：用 `backgrounds/useBlendedColors.ts`，时长是渲染 props 的 `blendMs`（放过渡的宿主里是柔焦的长度，别处是 0，直接换）。
+背景画的东西跟着歌变时（封面、种子），在 entry 写 `song`，返回它画的那几样（照 `common/entry.tsx`、`monet/entry.tsx`）：这几样变了，换歌时背景整个换成新的一份，在放过渡的宿主里用柔焦换，别处直接换。新的那一份要先读东西（解码封面、做图）时，用 `styleTransition/firstFrame.ts` 的 `useFirstFrameDrawn()`，读好时调它返回的函数（照 `common/FluidBackground.tsx`）；不调的挂上就算好了。主题颜色不写进 `song`：调色时颜色一直在变，主题也常在换歌之后才到，写进去每一步都会挂一份新的。换走的那一份留着它自己的封面、种子和主题颜色：混音时下一首的主题先到，也不会画到上一首的背景上。再挂一份很贵的背景（隐现、空：每份都要重新编译着色器）不写 `song`，在原来那一份里把颜色慢慢换过去：用 `backgrounds/useBlendedColors.ts`，时长是渲染 props 的 `blendMs`（放过渡的宿主里是柔焦的长度，别处是 0，直接换）。
+
+混音过渡里画交接的样式（entry 写 `followsSongHandoff`，现在只有莫奈）：过渡一开始，`VisualizerRenderer` 就把下一首的封面、种子和主题交给背景，背景照上面的换歌过渡换，只是这个过渡跟着交接进度走（`styleTransition/layerTransition.ts` 的 `alongProgress`；隐现、空的换色跟着渲染 props 的 `blendProgress`），长度就是过渡的长度。过渡结束时背景已经是下一首，不再换；中途取消时按平常换歌换回去。静态模式和减少动效时没有交接，过渡结束时才换歌。主题跟着画面上的歌：混音一开始实时主题就换成下一首的，但样式拿到的 `theme` 在整个过渡里都是上一首的，取消回到上一首时也是（`useShownTheme.ts`）；下一首的主题放在 `songHandoff.theme` 里。
 
 ## Shared contracts and helpers
 
@@ -104,6 +106,26 @@ App / ThemePark / VisPlayground / OBS source
 `VisualizerSharedProps` 是模式共同输入，包含 `MotionValue currentTime`、当前行/全部歌词、主题与字幕主题、音频分析值、背景/透明度、字幕显示开关、播放状态、seek/back/panel callbacks、资源和模式 tuning。完整字段以代码为准；本 README 只保留定位信息。
 
 有 `tuning.ts` 的模式各有自己的 tuning，并通过 `VisualizerRenderer` 的 `applyVisualizerTuning` 统一注入。`tuning.ts` 还写明这份 tuning 存在哪个键、怎么读、怎么合并改动（`storage`）：设置仓库（`useVisualizerSettingsStore`）按这份声明生成字段、改和恢复默认两个动作，仓库和 `src/stores/visualizerSettingsPersistence.ts` 里没有哪个模式的专门代码。背景同理：`backgrounds/<mode>/tuning.ts`；不是一整个对象的设置写在背景目录的 `settings.ts` 里（现在只有 `backgrounds/url/settings.ts`）。模式级设置面板由各自 `entry.tsx` 的 `renderSettingsPanel` 提供，歌词样式窗口给每个面板同一组 props（`tuning`、`onTuningChange`、`settings`、拖动开始和结束）；草稿、保存和「默认」都在窗口里按声明通用处理（`window/useTuningDrafts.ts`）。
+
+### 智能动感模式（beat FX）
+
+全局一个总开关，加每个「动感效果」自己的开关和强度（`SmartBeatSettings`，store 的 `smartBeat`：`enabled` 和按效果 id 存的 `effects`），不属于任何一个模式的 tuning。总开关在可视化设置窗口「歌词动画」页的最上面（`SmartBeatSettingsCard.tsx`）；效果在各模式自己的设置里，样式选项上面（`BeatEffectsGroup.tsx`）：每个效果一行，四字名、说明、开关，开着时下面一条强度滑杆，0–2×，1× 是调好的样子，在滑杆正中间，没动过的效果按 1×。
+
+效果登记在模式和背景的 entry 上（`beatEffects`，类型和 id 在 `services/beatFx/beatEffects.ts`）：每个效果有 id（`<模式>.<名字>`，存盘和导出都用它）、名字和说明的 i18n key、读哪路数据（`source`：`'beats'` 是 beat_this 的拍点，`'drums'` 是 htdemucs 分出的鼓点）。一个模式以后可以有好几个效果，加一条就行，设置界面和模型调度自动跟上。现在的效果：商籁「推镜裂光」（beats）、镜台「水镜涟漪」（beats）、时计「仿真鼓面」（drums）。`retired: true` 的效果代码和登记都在，但不跑也不出现在设置里：时计的「齿轮随拍」和隐现背景的「潮汐脉动」（2026-10-17 用户先搁置）。
+
+`beatClockTargets.ts` 按屏上的模式和背景、哪些效果开着，算出要不要 beat_this（`visualizerWantsBeats`）、要不要 htdemucs（`visualizerWantsDrumHits`）：只有读它的效果开着才跑那个模型。时计只开仿真鼓面时 beat_this 完全不跑，节拍时钟只带曲目 key 和听到的时间（`useBeatFxTrack.ts`）。每帧的效果按自己的 id 问 `beatFxLive` 的 `getBeatEffectStrength`（不播时为 0）；读 `beatImpact` / `downbeatImpact` 的拍点效果，强度已由时钟乘好（轻拍、重拍都取屏上那个拍点效果的强度）。旧的全局轻拍 / 重拍两个强度在读存盘和导入时折成商籁、镜台效果的强度（两者平均，默认 1 / 1 仍是 1）。不显示背景的模式本来就写着 `background: false`（Still）。
+
+各自的读法：从 `motionSignals` 的 `beatImpact` / `downbeatImpact`（时钟已经乘好强度）读包络，要离散触发的（镜台每拍一个涟漪）读 `beatFxLive` 的 `getBeatFxFiredCounts`；一律先看 `isBeatFxReady()`（鼓点效果看自己的 `getBeatEffectStrength` 和 `getDrumHits`），没就绪就走原来的画面，所以关着时像素不变。商籁 `sonnet/sonnetBeatFx.ts`，镜台 `diorama/dioramaBeatRipples.ts`，时计 `pendolo/pendoloBeatFx.ts`（不读重音，只看节奏过滤，见 Pendolo 一节），隐现 `backgrounds/latent/LatentBackground.tsx`。
+
+每拍还带「重音」（`services/analysis/beatAccents.ts`，和拍点在同一次 final0 分析里从同一份梅尔频谱算出）：强度 0–1、低 / 中 / 高三段的占比、小节位置（从 beat_this 的重拍往后数），以及整首歌的动感系数（0.45–1，只降不升）。
+
+- 时钟让每拍的峰值等于 `resolveBeatFxAccentGain`，即 (0.35 + 0.65 × 强度) × 动感系数，所以只读包络的画面（隐现）不用改代码就有强弱。
+- 要按拍区分的，用 `getBeatFxLastBeat` / `getBeatFxLastDownbeat` 取刚发射的那一拍：
+  - 商籁：偏低频的拍推近多一点，偏高频的拍横滚多一点，小节第 3 拍横滚减半（`resolveSonnetBeatFxAccent`）；
+  - 镜台：涟漪强度乘以 gain，偏低频的普通拍用大尺度涟漪（`resolveDioramaBeatRipple`）。拍点涟漪本身比频段起音的涟漪强得多（普通拍 1.6、重拍 2.2，起音约 0.3–1），整体呼吸每拍 +20%、重拍 +28%，比关着时夸张；正在唱的那个字随拍跳起（拍点发射时正在唱的单元，落在字与字之间时取最近开始的那个），普通拍 1/4 行高、重拍 2/5 行高，随包络回落，换字也不打断（`resolveDioramaLyricHop`；每个单元的三层平面在 `DioramaActiveUnitPlanes` 里同一个 group 下）；只走拍点那条路，关着时不变。
+- 复合拍子（6/8、9/8、12/8）里 Beat This! 数的是八分音符，比听感密三倍，慢歌也可能被数成双倍速，慢华尔兹按小节感受；重音里 `pulse` 为 0 的拍（只按重音位置认定，见 `services/analysis/README.md`）在 `mergeBeatFxEvents` 里就去掉了，所有画面只按附点四分音符的脉冲触发，小节位置也按留下的拍计。
+- 没有节奏的小节（打击成分远低于全曲平常水平，例如只有喇叭的前奏）里，`resolveBeatFxAccentGain` 返回 0，所有画面这一段都不出拍点特效（`rhythmic`，见 `services/analysis/README.md`）。
+- 没有重音数据时（旧存档，或读不到音频），以上各项都恰好等于 1，画面和加入重音之前一致。
 
 ### Lyrics pipeline
 
@@ -154,7 +176,7 @@ Visualizer 消费已解析的 `LyricData` / `Line` / `Word`，不负责解析 `.
 
 ### Monet
 
-`monet/VisualizerMonet.tsx` 组合 `MonetLyricsRail`（歌词栏外壳与滚动；行与扫字在 `MonetRailLine.tsx` / `MonetRailTokens.tsx`，布局在 `monetRailLayout.ts`）、`AudioOverlay`、浮动装饰和背景 pipeline；图像资源还涉及 `src/services/monetBackgroundImage.ts`、`monetPortraitImage.ts`。
+`monet/VisualizerMonet.tsx` 组合 `MonetLyricsRail`（歌词栏外壳与滚动；行与扫字在 `MonetRailLine.tsx` / `MonetRailTokens.tsx`，布局在 `monetRailLayout.ts`）、`AudioOverlay`、浮动装饰和背景 pipeline；图像资源还涉及 `src/services/monetBackgroundImage.ts`、`monetPortraitImage.ts`。混音过渡时：封面在过渡开始就换成下一首，淡入跟着交接进度（`MonetPortraitImage` 的 `progress`）；文字和歌词在交接过半（声音交叉点）时换，莫奈自己画的颜色（文字、装饰）同时换成下一首的主题，用原有的换歌入场动画，之后歌词栏读下一首自己的时钟和行（`monetSongHandoff.ts`）。
 
 ### Diorama
 
@@ -163,6 +185,20 @@ Visualizer 消费已解析的 `LyricData` / `Line` / `Word`，不负责解析 `.
 ### Pendolo
 
 `pendolo/VisualizerPendolo.tsx` 是 React 外壳；`PendoloClockworkCanvas.tsx` 负责时钟机械 canvas（优先 WebGL2：`pendoloClockworkWebGL.ts` 绘制、`pendoloClockworkMeshes.ts` 缓存齿轮几何、`pendoloClockworkMotion.ts` 推进摆动；不支持时退回 `pendoloClockworkDraw2d.ts` 的 Canvas2D；`pendoloClockworkScene.ts` 放共用的帧输入、配色与画布包围盒），`pendoloTextLayout.ts`、`pendoloTimeline.ts`、`pendoloGeometry.ts` 负责有界布局与时间线，`PendoloSettingsPanel.tsx` 负责调参。
+
+智能动感模式下（`entry.tsx` 的 `beatEffects`：「仿真鼓面」读鼓点；「齿轮随拍」已搁置）：
+- 用的拍子：beat_this 的拍点经「无节奏关」过滤（beat_this + HPSS，`rhythmic`），被关掉的拍什么都不触发。齿轮、火花、震屏不读重音，每拍满强度，只乘轻拍 / 重拍强度；冲击波（连同光晕、刻度和表盘点亮）和宝石闪光按重音强度（`resolveBeatFxAccentGain`，已含轻拍 / 重拍强度）。原来每拍扫一圈、点亮刻度的扫光已去掉。
+- 机芯：大主齿轮和歌词照旧只跟歌词换行走，拍点不碰它们。主轮下方并排的传动齿轮和秒齿轮对着转：轻拍各走一齿，重拍各转一整圈，用略欠阻尼的弹簧，到位时冲过头不到一成再回弹（顿挫）。摆轮每拍换向。都在 `stepPendoloClockworkMotion` 的可选 `beat` 参数里，不传时与原来逐值一致（golden 单测锁定）；传动齿轮多转的角度是 `transBeatAngle`，关着时为 0。
+- 特效：状态和触发在 `pendoloBeatFx.ts`（纯函数），每帧推进在 `usePendoloBeatFx.ts`，画法在 `pendoloBeatFxDraw.ts`。
+  - 冲击波（轻拍、重拍都触发，强度跟重音）：透明的透镜，从轴心推到屏幕最远角，越往外越快（外角处约是出轴心时的五倍），一次走完用一拍的 85%，但在 0.3–0.5 秒之间（慢歌不会跟着变慢，只有快歌会更快），赶在下一拍的波从轴心重新出发前就出了表盘，推开（推出到轴心距离的 20% × 强度）、点亮并朝特效色染色经过的东西，不画任何环或线。齿轮上是 mesh shader 的 `u_wave` 位移、提亮和染色（Canvas2D 用 14 层切片重画），歌词行在 `PendoloRotatingLine` 里按到轴心的距离推开、提亮。摆轮上的主题图标（五角星）是 DOM，用 `resolvePendoloPointWave` 按 shader 同样的公式跟着摆轮移动。透镜本身不影响背景；同时 `VisualizerPendolo` 里有一层柔光晕（径向渐变，只有前沿一条软光带，后面是空的、扫过的地方立刻干净，边缘淡到 0，没有线；叠加混合），跟着冲击波从轴心长到屏幕最远角，扩散途中保持亮度，快到终点才淡出（`resolvePendoloHaloOpacity`）。强弱按分贝换算重音增益（`resolvePendoloWavePunch`：弱拍下限 0.35 比最强拍低 30 dB，亮度按指数变化，人眼看亮度近似对数，平方时中强拍看起来差不多；轻拍 / 重拍强度另外相乘）：弱拍的光晕淡、强拍满亮，都用同样的时间走到屏幕外角；表盘点亮的亮度也一样，放在震屏之外、齿轮和歌词之下。
+    - 波峰经过刻度那圈表盘（1.15 倍轮半径）时 60 个刻度一起亮，经过最外圈表盘（1.4 倍）时整圈亮起，都随后淡出（`lightPendoloDials`，overlay 里画）。
+  - 宝石闪光（各齿轮中心，轻拍、重拍都触发，强弱和光晕一样按重音增益的平方）：WebGL 是叠加混合的 overlay，Canvas2D 是 `lighter`。
+  - 以下只在重拍上：咬合火花（同样画在 overlay 里；火花和两个齿轮转整圈同时喷出，数量、速度、大小是最早一版的）、8px 震屏。
+- 颜色：主题强调色提亮到发光（`resolvePendoloBeatFxColor`），偏灰的主题用金色。
+- 鼓点（效果「仿真鼓面」，`pendolo.drumhead`）：装了 `htdemucs_gpu` 时，时计在屏上就读这首歌的鼓点（`services/analysis/drumHits.ts`，GPU 分离鼓轨，一首约十几秒，存盘后不再跑；边分边给，开始后一秒左右就有）。读到后不再用拍点：底鼓、军鼓让光晕在原地按分贝曲线亮起再快速回落，宝石和两圈表盘一起亮；底鼓让整个表面鼓起，重的再震屏；军鼓打在偏离中心的位置，重的让表面朝那边倾；镲片点亮刻度和刻度所在的内圈（只亮刻度太不明显，2026-10-17 加上内圈）。没有冲击波、没有火花。读到之前、`until` 之后还没算到的地方、没装模型、没有 WebGPU，或没有鼓的歌，时计不出任何效果。强度滑杆乘在光晕、鼓起、倾斜、震屏和镲片点亮上（倾斜、震屏的门槛仍按原始鼓点强度判断），1× 与调好的样子逐值一致。
+- 上面按拍点的那套效果（冲击波、光晕、火花、按拍震屏）已于 2026-10-17 废弃：代码保留，由 `usePendoloBeatFx.ts` 的 `PENDOLO_BEAT_LIST_FX` 关掉，不再运行。
+- 机芯随拍（上面「机芯」一条，效果「齿轮随拍」，`pendolo.gearBeats`）同日搁置：登记为 `retired`，`PendoloClockworkCanvas.tsx` 只在它的强度大于 0 时把拍点交给齿轮，所以齿轮照原来的样子走，时计也不再为它跑 beat_this。
+- 关闭或未就绪时，所有 MotionValue 为 0、shader 的 wave uniform 为 0、不画 overlay，画面与原来一致。
 
 ### Sonnet
 

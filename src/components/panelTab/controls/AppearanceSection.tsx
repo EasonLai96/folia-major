@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlayerState, type Theme, type VisualizerBackgroundMode, type VisualizerMode } from '../../../types';
 import { getVisualizerModeLabel, getVisualizerRegistryEntry, VISUALIZER_REGISTRY } from '../../visualizer/registry';
@@ -76,6 +76,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     onClosePanel,
 }) => {
     const { t } = useTranslation();
+    const transparentLabelId = useId();
     const openSettings = useSettingsModalStore(state => state.openSettings);
     // Only the modes whose typography is built from word segmentation get the chip; the registry
     // says which, so adding such a mode does not mean editing a list here.
@@ -256,11 +257,11 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 </LyricPreviewProvider>
             </div>
 
-            {/* The switch takes its name from the label it sits in; a press anywhere on the row turns it. */}
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 py-1.5">
-                <span className="min-w-0 flex-1 text-sm leading-5">{t('options.transparentPlayerBackground')}</span>
-                <Toggle checked={transparentPlayerBackground} onChange={onToggleTransparentPlayerBackground} />
-            </label>
+            {/* Only the switch turns it; the text names it for a screen reader. */}
+            <div className="flex min-h-11 items-center gap-3 py-1.5">
+                <span id={transparentLabelId} className="min-w-0 flex-1 text-sm leading-5">{t('options.transparentPlayerBackground')}</span>
+                <Toggle checked={transparentPlayerBackground} onChange={onToggleTransparentPlayerBackground} labelledBy={transparentLabelId} />
+            </div>
         </div>
     );
 };

@@ -655,58 +655,6 @@ declare global {
     result?: unknown;
   }
 
-  /**
-   * One downloadable as the settings page sees it. `path` is null when it is not installed.
-   *
-   * Not all of them are models: `runtime` is the Python separation runs in, which is a different
-   * archive per platform and unpacks to a directory rather than landing as a file. It is in the
-   * same list because everything the page does with it - size, progress, install, remove - is the
-   * same, and the two differences it does have are the two fields below.
-   */
-  interface ElectronAutomixModelEntry {
-    name: string;
-    /** null on a platform with no build, where there is no archive to name. */
-    file: string | null;
-    bytes: number;
-    /** Which capability this buys: the beat grid, or the stems. */
-    enables: 'beatGrid' | 'stems';
-    license: string;
-    /**
-     * False only for `runtime`, and only where no build exists for this OS and architecture -
-     * today that is Intel Macs. The row is still drawn; it offers no download.
-     */
-    supported: boolean;
-    path: string | null;
-    downloading: boolean;
-  }
-
-  interface ElectronAutomixModelStatus {
-    /**
-     * The netdisk routes, offered only once every mirror has failed. An empty list = not offered.
-     * The extraction code belongs to the link rather than to the block: the two disks have
-     * different ones, and a code shown beside the wrong link is worse than no code.
-     */
-    manual: { links: Array<{ label: string; url: string; code?: string }>; note: string };
-    downloadDir: string;
-    models: ElectronAutomixModelEntry[];
-  }
-
-  /** A verified copy of a model found somewhere on this machine. Matched by hash, not by name. */
-  interface ElectronAutomixModelFound {
-    name: string;
-    file: string;
-    path: string;
-    bytes: number;
-  }
-
-  interface ElectronAutomixModelProgress {
-    name: string;
-    status: 'downloading' | 'ready' | 'failed';
-    received: number;
-    total: number;
-    /** Which mirror is answering, or null before one has been reached. */
-    host: string | null;
-  }
 
   /** One connected display, for the choice of the display wallpaper mode uses. Geometry is in DIP, as Electron reports it. */
   interface ElectronWallpaperDisplay {
@@ -804,13 +752,32 @@ declare global {
         /** Resolves the OS path of a dropped File (File.path was removed in modern Electron). */
         getPathForFile: (file: File) => string;
       };
-      /** Beat This! inference in the main process. Null when the weights or runtime are absent. */
+      /** Beat This! on the CPU in the analysis worker - automix's fallback only. Null when the weights are absent. */
       runBeatThis?: (
         chunks: Array<{ data: Float32Array; frames: number }>,
       ) => Promise<{ beat: Float32Array[]; downbeat: Float32Array[] } | null>;
       /**
-       * htdemucs separation in the main process, for one window of one track at 44.1kHz.
+       * The WebGPU export of Beat This! (fp16 tensors + manifest, one file), read by the main process.
+       * final0, shipped with the app, which automix and 智能动感模式 both run. Null when absent.
+       */
+      getBeatThisGpuWeights?: (model?: 'beat_this') => Promise<{
+        weights: Uint8Array<ArrayBuffer>;
+        manifest: import('./services/analysis/beatThisWgsl/runtime').BeatThisWgslManifest;
+      } | null>;
+      /** htdemucs' WebGPU export, shipped with the app, for the drum stem of 智能动感模式; null when absent. */
+      getHtdemucsGpuWeights?: () => Promise<{
+        weights: Uint8Array<ArrayBuffer>;
+        manifest: import('./services/analysis/htdemucsWgsl/runtime').HtdemucsWgslManifest;
+      } | null>;
+      /**
+       * Automix switched on or off. While on, the analysis worker keeps htdemucs loaded across tracks;
+       * off releases it in that process. One-way.
+       */
+      setAutomixEnabled?: (enabled: boolean) => void;
+      /**
+       * htdemucs separation in the analysis worker, for one window of one track at 44.1kHz.
        * `other` is not returned - it is derived by subtraction so the stems sum to the mix exactly.
+       * `{ declined }` carries the worker's reason when it ran nothing.
        */
       separateStems?: (
         request: { left: Float32Array<ArrayBuffer>; right: Float32Array<ArrayBuffer> },
@@ -819,35 +786,14 @@ declare global {
         // Never shared memory: this crosses the IPC boundary by structured clone, which always
         // reconstitutes a plain ArrayBuffer on this side.
         { left: Float32Array<ArrayBuffer>; right: Float32Array<ArrayBuffer> }
-      > | null>;
+      > | { declined: string } | null>;
       /**
        * Which model files are on disk, answered without loading them.
        *
        * Absent in the browser build, which is why every reader treats a missing function as "no
        * weights" rather than as "unknown".
        */
-      getAutomixModelsPresent?: () => Promise<{ beat_this: boolean; htdemucs: boolean }>;
-      chooseModelsDirectory?: () => Promise<{ canceled: boolean }>;
-      resetModelsDirectory?: () => Promise<void>;
-      getAutomixModelStatus?: () => Promise<ElectronAutomixModelStatus>;
-      downloadAutomixModel?: (name: string) => Promise<{ ok: boolean; skipped?: string[]; path?: string }>;
-      cancelAutomixModelDownload?: (name: string) => Promise<boolean>;
-      scanForAutomixModels?: () => Promise<{ found: ElectronAutomixModelFound[]; scanned: number }>;
-      installAutomixModel?: (name: string, source: string) => Promise<{ ok: boolean; reason?: string }>;
-      /**
-       * Deletes every copy of every model the app can reach, plus any `.part` leftovers.
-       * `failed` is non-empty when a copy could not be removed - typically one inside the
-       * installer's own read-only directory, which stays installed and is reported as such.
-       */
-      removeAllAutomixModels?: () => Promise<{
-        ok: boolean;
-        removed: string[];
-        freed: number;
-        failed: Array<{ name: string; reason: string }>;
-      }>;
-      onAutomixModelProgress?: (
-        callback: (progress: ElectronAutomixModelProgress) => void,
-      ) => () => void;
+      getAutomixModelsPresent?: () => Promise<{ beat_this: boolean; htdemucs: boolean; htdemucs_gpu?: boolean }>;
       /** Developer debug module. Absent in the browser build, where every caller no-ops. */
       debugGetState?: () => Promise<DebugModuleState>;
       debugSetState?: (patch: Partial<Pick<DebugModuleState, 'runtimeLogEnabled' | 'runtimeLogMode' | 'consoleCaptureEnabled' | 'memoryMonitorEnabled' | 'memoryLogEnabled' | 'memoryLogMode' | 'memoryIntervalMs'>>) => Promise<DebugModuleState>;
@@ -861,6 +807,15 @@ declare global {
       onDebugMemorySample?: (callback: (sample: DebugMemorySample) => void) => () => void;
       /** One-way stage marks from the automix session into the runtime log. */
       diagMark?: (text: string) => void;
+      /**
+       * Old automix models in the folder an earlier version (up to 0.7.20) let the listener choose:
+       * where, how many and how big, or null when there is nothing to ask about.
+       */
+      checkLegacyModels?: () => Promise<{ dir: string; count: number; bytes: number } | null>;
+      /** Deletes them ('delete') or leaves them ('dismiss'); either way the prompt is not shown again. */
+      resolveLegacyModels?: (action: 'delete' | 'dismiss') => Promise<{ ok: boolean }>;
+      /** Opens that folder in the file manager. */
+      openLegacyModelsFolder?: () => Promise<boolean>;
       platform: string;
       isLinuxX11: boolean;
       getSettings: () => Promise<any>;

@@ -96,7 +96,6 @@
       "build/thumbar/*.png"
     ],
     "asarUnpack": [
-      "electron/analysis/htdemucs_runner.py",
       "node_modules/@koromix/koffi-*/**/*.node",
       "node_modules/@lox-audioserver/node-librespot/prebuilds/**/*.node"
     ],
@@ -104,6 +103,21 @@
       {
         "from": "build/ffmpeg/${os}-${arch}",
         "to": "ffmpeg-audio"
+      },
+      {
+        "from": "build/mnn/${os}-${arch}",
+        "to": "mnn",
+        "filter": [
+          "*folia_mnn.*"
+        ]
+      },
+      {
+        "from": "models",
+        "to": "models",
+        "filter": [
+          "beat_this-wgsl.bin",
+          "htdemucs-wgsl.bin"
+        ]
       },
       {
         "from": "build/icon.png",
@@ -236,7 +250,6 @@
     "koffi": "^3.3.1",
     "kugoumusicapi": "https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz",
     "music-metadata": "^11.16.1",
-    "onnxruntime-node": "^1.30.0",
     "ws": "^8.21.3",
     "youtubei.js": "18.1.0"
   },
@@ -259,6 +272,7 @@
     "@types/three": "^0.185.4",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.1.1",
+    "@webgpu/types": "0.1.74",
     "@xmldom/xmldom": "^0.9.12",
     "animejs": "^4.5.0",
     "autoprefixer": "^10.6.1",

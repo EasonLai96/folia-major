@@ -480,6 +480,14 @@
 
 /* ---- the lyric: the line being sung and one quiet line under it, from y 40 ---- */
 
+/* Holds the lyric while an audio hand-off fades it with the outgoing song: the stage's own box, so
+   the lyric sits where it did, and nothing in it takes the pointer. */
+.remote-recede {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .remote-lyric {
   position: absolute;
   left: 22px;

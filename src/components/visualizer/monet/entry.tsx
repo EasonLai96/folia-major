@@ -30,6 +30,8 @@ export default defineVisualizer({
         keywords: ['monet', '莫奈', '切换到可视化：莫奈', '切换到可视化莫奈'],
     },
     seeksOnLineClick: true,
+    // 混音过渡时背景和封面随过渡换成下一首，文字和歌词在交叉点换（VisualizerMonet）
+    followsSongHandoff: true,
     render: props => {
         const monetTuning = props.monetTuning ?? DEFAULT_MONET_TUNING;
         const lyricsFontScale = props.lyricsFontScale ?? 1;

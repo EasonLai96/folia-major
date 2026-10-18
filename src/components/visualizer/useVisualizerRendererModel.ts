@@ -18,6 +18,7 @@ import {
     selectDisplayLyrics,
     selectDisplayPlayerState,
     selectDisplaySong,
+    selectIsShowingTail,
     usePlaybackStore,
 } from '../../stores/usePlaybackStore';
 import { getSongAlbumLabel, getSongArtistLabel } from '../../services/onlineMusic/songMetadata';
@@ -25,6 +26,8 @@ import { getVisualizerRegistryEntry } from './registry';
 import { useVisualizerBackgroundConfig } from './useVisualizerBackgroundConfig';
 import { useVisualizerStyleAssets } from './useVisualizerStyleAssets';
 import { useVisualizerTunings } from './useVisualizerTunings';
+import { useVisualizerSongHandoff } from './useVisualizerSongHandoff';
+import { useShownTheme } from './useShownTheme';
 import { NO_LYRIC_LINES } from '../../utils/lyrics/noLyricLines';
 import { selectLibraryPlayerBackdrop, useLibraryPlayerOcclusionStore } from '../../stores/useLibraryPlayerOcclusionStore';
 import { resolveVisualizerShowText } from '../app/presentation/playerVisualizerBackdrop';
@@ -101,6 +104,11 @@ export const useVisualizerRendererModel = ({
     const displayCoverUrl = usePlaybackStore(selectDisplayCoverUrl);
     const displayPlayerState = usePlaybackStore(selectDisplayPlayerState);
     const displayDuration = usePlaybackStore(selectDisplayDuration);
+    // The theme too: the live one is the incoming song's once it comes (useShownTheme).
+    const liveThemes = useMemo(() => ({ theme, subtitleTheme }), [theme, subtitleTheme]);
+    const shownThemes = useShownTheme(liveThemes, usePlaybackStore(selectIsShowingTail), displaySong?.id);
+    // A blend's incoming song, for the style that draws the hand-off; the others switch at the settle.
+    const songHandoff = useVisualizerSongHandoff(getVisualizerRegistryEntry(visualizerMode).followsSongHandoff === true, liveThemes);
     const backgroundConfig = useVisualizerBackgroundConfig();
     const visualizerTunings = useVisualizerTunings();
 
@@ -132,8 +140,8 @@ export const useVisualizerRendererModel = ({
         duration: Number.isFinite(displayDuration) ? displayDuration : 0,
         currentLineIndex,
         lines: displayLyrics?.lines || NO_LYRIC_LINES,
-        theme,
-        subtitleTheme,
+        theme: shownThemes.theme,
+        subtitleTheme: shownThemes.subtitleTheme,
         isDaylight,
         audioPower,
         audioBands,
@@ -143,6 +151,7 @@ export const useVisualizerRendererModel = ({
         coverUrl: displayCoverUrl,
         showText: resolveVisualizerShowText({ currentView, isSettingsModalOpen, isPanelOpen, backdropLyrics }),
         seed,
+        songHandoff,
         staticMode,
         backgroundStaticMode: shouldPauseVisualizerBackground
             || (

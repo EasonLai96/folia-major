@@ -82,6 +82,7 @@ export const VisualizerBackdropLayers: React.FC<VisualizerBackdropLayersProps> =
                     staticMode: staticMode || (sharedProps?.backgroundStaticMode ?? false),
                     paused,
                     blendMs: transition ? (transition.enter.delay ?? 0) + transition.enter.duration : 0,
+                    blendProgress: transition?.progress,
                 }}
                 drawn={renderBackground}
                 transition={transition}

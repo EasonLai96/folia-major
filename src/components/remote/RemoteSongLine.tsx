@@ -1,6 +1,7 @@
-import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { AnimatePresence, animate, motion, useMotionValue, useTransform, type MotionValue } from 'framer-motion';
 import type { RemoteTrackHandoff } from './useRemoteTrackHandoff';
+import { HANDOFF_RETURN_SECONDS } from './useRemoteHandoffClock';
 
 // src/components/remote/RemoteSongLine.tsx
 // The song in the remote window, in its two forms: one small line above the lyric (cover 22),
@@ -18,6 +19,45 @@ const HANDOFF_TRANSITION = { duration: 0.55, ease: 'linear' } as const;
 export const remoteCoverImage = (url: string | null): string | undefined => (
     url ? `url(${JSON.stringify(url)})` : undefined
 );
+
+/**
+ * 一张面里跟着音频交接走的那一层不透明度：交接进行时跟着交接的时间轴，交接一停（走完、提前结束、
+ * 被取消）就从停下的位置缓回 1。不能在交接停下时直接从 style 里拿掉那个 MotionValue：
+ * framer-motion 不会清掉它最后写到元素上的值，面就一直停在半透明（取消过渡后封面变暗）。
+ */
+const useHandoffFade = (follow: MotionValue<number> | undefined, reduceMotion: boolean): MotionValue<number> => {
+    const opacity = useMotionValue(follow ? follow.get() : 1);
+    useEffect(() => {
+        if (follow) {
+            opacity.set(follow.get());
+            return follow.on('change', latest => opacity.set(latest));
+        }
+        const back = animate(opacity, 1, {
+            duration: reduceMotion ? 0 : HANDOFF_RETURN_SECONDS * (1 - opacity.get()),
+            ease: 'easeOut',
+        });
+        return () => back.stop();
+    }, [follow, opacity, reduceMotion]);
+    return opacity;
+};
+
+type HandoffFadeProps = {
+    follow: MotionValue<number> | undefined;
+    reduceMotion: boolean;
+    className: string;
+    shade?: string;
+    backgroundImage?: string;
+    children?: React.ReactNode;
+};
+
+const HandoffFade: React.FC<HandoffFadeProps> = ({ follow, reduceMotion, className, shade, backgroundImage, children }) => {
+    const opacity = useHandoffFade(follow, reduceMotion);
+    return (
+        <motion.div className={className} data-remote-shade={shade} style={{ backgroundImage, opacity }}>
+            {children}
+        </motion.div>
+    );
+};
 
 type RemoteCoverFacesProps = {
     handoff: RemoteTrackHandoff;
@@ -46,18 +86,47 @@ export const RemoteCoverFaces: React.FC<RemoteCoverFacesProps> = ({ handoff, ima
                         ? HANDOFF_TRANSITION
                         : { duration: reduceMotion ? 0 : SWITCH_SECONDS, ease: 'easeInOut' }}
                 >
-                    <motion.div
+                    <HandoffFade
+                        follow={handoffOpacity}
+                        reduceMotion={reduceMotion}
                         className={imageClassName}
-                        style={{
-                            backgroundImage: remoteCoverImage(face.coverUrl),
-                            ...(handoffOpacity ? { opacity: handoffOpacity } : {}),
-                        }}
+                        backgroundImage={remoteCoverImage(face.coverUrl)}
                     />
                 </motion.div>
             );
         })}
     </AnimatePresence>
 );
+
+/** 柔焦的模糊上限，与主窗口风格切换的 softFocus 一致；四舍五入到 0.25px，看不出变化的那几帧不重绘。 */
+const RECEDE_BLUR_PX = 8;
+const toRecedeBlur = (opacity: number): string => {
+    const px = Math.round((1 - opacity) * RECEDE_BLUR_PX * 4) / 4;
+    return px > 0 ? `blur(${px}px)` : 'none';
+};
+
+type RemoteOutgoingRecedeProps = {
+    handoff: RemoteTrackHandoff;
+    reduceMotion: boolean;
+    children: React.ReactNode;
+};
+
+/**
+ * 交接期跟着上一首的封面和标题一起退场的部分（歌词行）：同一条退场曲线上的不透明度和柔焦，
+ * 从外面套上，里面的组件不用知道交接。平时这一层不带任何样式，和直接放在舞台上一样。
+ */
+export const RemoteOutgoingRecede: React.FC<RemoteOutgoingRecedeProps> = ({ handoff, reduceMotion, children }) => {
+    const opacity = useHandoffFade(handoff.isHandoffActive ? handoff.handoffOutgoingOpacity : undefined, reduceMotion);
+    const blur = useTransform(opacity, toRecedeBlur);
+    return (
+        <motion.div
+            className="remote-recede"
+            style={{ opacity, filter: reduceMotion ? 'none' : blur }}
+        >
+            {children}
+        </motion.div>
+    );
+};
 
 type RemoteSongLineProps = {
     /** 'line': a lyric line is on screen and the song is the small line. 'card': the song is the title card. */
@@ -88,23 +157,15 @@ const RemoteSongLine: React.FC<RemoteSongLineProps> = ({ mode, handoff, reduceMo
                             : { duration: reduceMotion ? 0 : SWITCH_SECONDS, ease: 'easeInOut' }}
                     >
                         {form === 'line' ? (
-                            <motion.div
-                                className="remote-song__row"
-                                data-remote-shade={shade}
-                                style={handoffOpacity ? { opacity: handoffOpacity } : undefined}
-                            >
+                            <HandoffFade follow={handoffOpacity} reduceMotion={reduceMotion} className="remote-song__row" shade={shade}>
                                 <span className="remote-song__title">{face.title}</span>
                                 {face.artist && <span className="remote-song__artist">{face.artist}</span>}
-                            </motion.div>
+                            </HandoffFade>
                         ) : (
-                            <motion.div
-                                className="remote-song__cardtext"
-                                data-remote-shade={shade}
-                                style={handoffOpacity ? { opacity: handoffOpacity } : undefined}
-                            >
+                            <HandoffFade follow={handoffOpacity} reduceMotion={reduceMotion} className="remote-song__cardtext" shade={shade}>
                                 <div className="remote-song__cardtitle">{face.title}</div>
                                 {face.artist && <div className="remote-song__cardartist">{face.artist}</div>}
-                            </motion.div>
+                            </HandoffFade>
                         )}
                     </motion.div>
                 );
