@@ -1,5 +1,7 @@
 import React from 'react';
 import FloatingPlayerControls from '../../FloatingPlayerControls';
+import MobilePlayerChrome from '../mobile-player/MobilePlayerChrome';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 import SearchWorkspace from '../search/SearchWorkspace';
 import DevDebugOverlay from '../../DevDebugOverlay';
 import MemoryMonitorWindow from '../../debug/MemoryMonitorWindow';
@@ -34,7 +36,9 @@ const AppOverlays: React.FC<AppOverlaysProps> = ({ model }) => {
 
             {floatingControls
                 && (floatingControls.currentView !== 'lattice' || !isCurrentSongPosterVisible)
-                && <FloatingPlayerControls {...floatingControls} />}
+                && (isCapacitorAndroid()
+                    ? <MobilePlayerChrome {...floatingControls} />
+                    : <FloatingPlayerControls {...floatingControls} />)}
 
             {nowPlayingToast && <NowPlayingToast {...nowPlayingToast} />}
         </>
