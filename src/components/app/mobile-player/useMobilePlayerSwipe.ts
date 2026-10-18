@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { isCapacitorAndroid } from '../../../platform/runtime';
 import { resolveSwipeDirection } from './swipeGesture';
 // src/components/app/mobile-player/useMobilePlayerSwipe.ts
-// Android App 播放页的手势：左滑下一首、右滑上一首、下滑退出播放页。
+// Android App 播放页的手势：左滑下一首、右滑上一首、下滑退出播放页；轻点画面切换控制栏显示（拍照用的纯画面）。
 // 只认从歌词画面本身开始的滑动；按钮、进度条、面板、对话框和会自己滚动的歌词栏上的滑动不管。
 
 type MobilePlayerSwipeOptions = {
@@ -13,7 +13,15 @@ type MobilePlayerSwipeOptions = {
     onNext: () => void;
     /** 退出播放页；和返回键走同一条路（先关右侧面板，再回上一页）。 */
     onClose: () => void;
+    /** 轻点画面（几乎没移动、很快放开）；参数是按下那一刻控制栏是否隐藏。 */
+    onTap?: (wasHidden: boolean) => void;
+    /** 读取当前控制栏是否隐藏；在按下时快照，免得「自动隐藏」模式按下就把控制栏叫回来、读到的已经是显示。 */
+    readHidden?: () => boolean;
 };
+
+/** 移动不超过这么多、放开得够快，才算轻点。 */
+const TAP_MAX_DISTANCE_PX = 12;
+const TAP_MAX_DURATION_MS = 350;
 
 const SURFACE_SELECTOR = '[data-testid="player-visual-surface"]';
 const IGNORED_SELECTOR = 'button, a, input, textarea, select, [role="slider"], [role="dialog"], [role="menu"], [data-folium-part^="progress"]';
@@ -38,6 +46,12 @@ export const useMobilePlayerSwipe = (options: MobilePlayerSwipeOptions): void =>
     useEffect(() => {
         if (!active || !isCapacitorAndroid()) return;
         let start: { x: number; y: number; time: number; allowDown: boolean; } | null = null;
+        let hiddenAtPress = false;
+
+        // 捕获阶段先于自动隐藏挂在 window 冒泡阶段的 pointerdown，拿到按下前的状态。
+        const handlePointerDownCapture = () => {
+            hiddenAtPress = Boolean(optionsRef.current.readHidden?.());
+        };
 
         const handleStart = (event: TouchEvent) => {
             start = null;
@@ -60,6 +74,13 @@ export const useMobilePlayerSwipe = (options: MobilePlayerSwipeOptions): void =>
             const velocity = Math.abs(dx) > Math.abs(dy) ? dx / seconds : dy / seconds;
             const direction = resolveSwipeDirection(dx, dy, velocity);
             const current = optionsRef.current;
+            if (Math.hypot(dx, dy) <= TAP_MAX_DISTANCE_PX && event.timeStamp - origin.time <= TAP_MAX_DURATION_MS) {
+                if (current.onTap) {
+                    console.info('[MobilePlayerSwipe] Tap on player surface, toggling chrome');
+                    current.onTap(hiddenAtPress);
+                }
+                return;
+            }
             if (direction === 'left' && current.canNext) {
                 console.info('[MobilePlayerSwipe] Swipe to next track');
                 current.onNext();
@@ -76,10 +97,12 @@ export const useMobilePlayerSwipe = (options: MobilePlayerSwipeOptions): void =>
             start = null;
         };
 
+        window.addEventListener('pointerdown', handlePointerDownCapture, { capture: true, passive: true });
         window.addEventListener('touchstart', handleStart, { passive: true });
         window.addEventListener('touchend', handleEnd, { passive: true });
         window.addEventListener('touchcancel', handleCancel, { passive: true });
         return () => {
+            window.removeEventListener('pointerdown', handlePointerDownCapture, { capture: true });
             window.removeEventListener('touchstart', handleStart);
             window.removeEventListener('touchend', handleEnd);
             window.removeEventListener('touchcancel', handleCancel);

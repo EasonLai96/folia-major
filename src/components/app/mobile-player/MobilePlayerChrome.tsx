@@ -2,9 +2,10 @@ import React from 'react';
 import FloatingPlayerControls from '../../FloatingPlayerControls';
 import MobileMiniPlayer from './MobileMiniPlayer';
 import { useMobilePlayerSwipe } from './useMobilePlayerSwipe';
+import { useAppChromeStore } from '../../../stores/useAppChromeStore';
 // src/components/app/mobile-player/MobilePlayerChrome.tsx
 // Android App 的播放条：首页和歌墙换成贴底的迷你播放条；播放页保留原来的胶囊（进度、循环、槽位都在上面），
-// 另外加上左右滑切歌、下滑退出。
+// 另外加上左右滑切歌、下滑退出；轻点画面把进度胶囊和右下按钮一起收起（纯画面，方便截图拍照），再点一下叫回来。
 
 type FloatingControlsProps = React.ComponentProps<typeof FloatingPlayerControls>;
 
@@ -25,6 +26,8 @@ const MobilePlayerChrome: React.FC<FloatingControlsProps> = (props) => {
         onPrev: () => trackNavigation?.onPrev(),
         onNext: () => trackNavigation?.onNext(),
         onClose: leavePlayer,
+        readHidden: () => useAppChromeStore.getState().isPlayerChromeHidden,
+        onTap: (wasHidden) => useAppChromeStore.getState().setIsPlayerChromeHidden(!wasHidden),
     });
 
     if (isPlayer) return <FloatingPlayerControls {...props} />;
