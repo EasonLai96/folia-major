@@ -14,6 +14,12 @@
 >
 > Android 版本的問題請回報至本倉庫，不要直接向上游回報移植版特有的問題。
 
+## Android 實機示範
+
+[▶ 觀看 Android 實機示範（MP4）](https://github.com/EasonLai96/folia-major/blob/android/docs/media/folia-android-demo.mp4)
+
+[下載原始影片](https://raw.githubusercontent.com/EasonLai96/folia-major/android/docs/media/folia-android-demo.mp4)
+
 ## 為什麼做 Android 版？
 
 喜歡 Folia 的歌詞動畫，也希望在手機上直接打開就能聽。
