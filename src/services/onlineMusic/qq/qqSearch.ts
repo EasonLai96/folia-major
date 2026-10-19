@@ -80,7 +80,11 @@ export const searchQqSongs = async (query: string, limit: number, offset: number
 
     if (hasQqSession()) {
         try {
-            return await searchWithSession(keyword, page, pageSize);
+            const withSession = await searchWithSession(keyword, page, pageSize);
+            // 公共后端带会话搜，在 Android App 上整页回空（2026-10-19 实测「未找到」，同一个词直连有结果）。
+            // 第一页就空的时候再用匿名直连搜一次，确实没有才显示「未找到」。
+            if (withSession.items.length > 0 || page > 1) return withSession;
+            console.info('[QQProvider] session search returned no items, trying anonymous search');
         } catch (error) {
             if (isSearchRejected(error)) throw error;
             console.warn('[QQProvider] session search unavailable, falling back to anonymous search', error);

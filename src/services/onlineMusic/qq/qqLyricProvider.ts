@@ -13,6 +13,8 @@ import { applyDetectedChorusEffects, applyChorusRangesByTime } from '../../../ut
 import type { ChorusRange } from '../../../utils/lyrics/chorusEffects';
 import { getOriginalCoverUrl } from '../../../utils/coverUrl';
 import { lyricProxyWebUrl } from '../../lyricProxy';
+import { CapacitorHttp } from '@capacitor/core';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 const isElectron = typeof window !== 'undefined' && (window as any).electron;
 
@@ -41,6 +43,33 @@ async function requestQQ(method: string, module: string, param: any): Promise<an
   };
 
   const targetUrl = 'https://u.y.qq.com/cgi-bin/musicu.fcg';
+
+  // Android App: u.y.qq.com sends no CORS headers for https://localhost and the web relay
+  // (/api/lyric-proxy) returned nothing on the phone (search showed "not found", 2026-10-19),
+  // so the request goes straight to QQ over native HTTP, as on the desktop.
+  if (isCapacitorAndroid()) {
+    const answer = await CapacitorHttp.post({
+      url: targetUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'tmeLoginType=-1;',
+        'User-Agent': 'okhttp/3.14.9',
+      },
+      data: payload,
+      connectTimeout: 15000,
+      readTimeout: 20000,
+      responseType: 'json',
+    });
+    if (answer.status < 200 || answer.status >= 300) {
+      throw new Error(`QQ Music API request failed: ${answer.status}`);
+    }
+    const native = typeof answer.data === 'string' ? JSON.parse(answer.data) : answer.data;
+    if (native?.code !== 0 || native?.request?.code !== 0) {
+      throw new Error(`QQ Music API error: code ${native?.code || native?.request?.code}`);
+    }
+    return native.request.data;
+  }
+
   const url = isElectron ? targetUrl : lyricProxyWebUrl(targetUrl);
 
   const response = await fetch(url, {
