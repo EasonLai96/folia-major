@@ -92,6 +92,9 @@ const ENDPOINTS: Record<QqOperation, string> = {
 
 // The requests a sign-in waits for. They get the sign-in's time limit.
 const LOGIN_REQUESTS: ReadonlySet<QqOperation> = new Set(['login_qr_key', 'login_qr_create', 'login_qr_check']);
+// 公共的 Serverless 后端（folia.izuna.top）答一次 login_qr_check 要 10–12 秒（它在等 QQ 的长轮询，2026-10-19 实测），
+// 冷启动或扫码后换凭据时会更久，超过通用的 20 秒，登录窗口就会报「无响应」。QQ 的登录请求给 45 秒。
+const QQ_LOGIN_REQUEST_LIMIT_MS = 45_000;
 // The requests for a song's address and a collection's tracks. They get the limit below; no other
 // request has a limit.
 const ONLINE_REQUESTS: ReadonlySet<QqOperation> = new Set([
@@ -387,7 +390,7 @@ export const requestQq = async <T = unknown>(
         const answer = await appServerFetch(`${base}${endpoint.path}?${query}`, { ...init, ...(signal ? { signal } : {}) });
         return { response: answer, body: await readJsonBody(answer) };
     };
-    const { response, body } = await (LOGIN_REQUESTS.has(operation) ? withLoginRequestLimit(send)
+    const { response, body } = await (LOGIN_REQUESTS.has(operation) ? withLoginRequestLimit(send, QQ_LOGIN_REQUEST_LIMIT_MS)
         : ONLINE_REQUESTS.has(operation) ? withOnlineRequestLimit(send, QQ_ONLINE_REQUEST_LIMIT_MS) : send());
     if (!response.ok) {
         // A missing, expired, rejected, or non-persisted backend session is surfaced uniformly as 401.

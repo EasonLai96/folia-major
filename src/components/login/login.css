@@ -125,3 +125,7 @@
 /* The platform column scrolls sideways without a bar where it lies across the top. */
 .login-row-scroll { scrollbar-width: none; }
 .login-row-scroll::-webkit-scrollbar { display: none; }
+
+/* Android App: the mini player is fixed along the bottom edge of every home screen and covered
+   the switcher, so no other platform could be chosen. The switcher stands above it. */
+html[data-runtime='capacitor-android'] .login-switcher-pill { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }

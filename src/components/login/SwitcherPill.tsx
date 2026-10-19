@@ -12,6 +12,7 @@ import { kitMotionTokens, useKitReducedMotion } from '../modal/settings/kit/moti
 import { openLoginWindow, useLoginWindowStore } from './loginWindowStore';
 import { AccountPicture, PlatformMark } from './PlatformMark';
 import { pillProvider, pillSeenNext, rowStatus, type PillSeen } from './platformRows';
+import './login.css';
 
 // src/components/login/SwitcherPill.tsx
 // 主页右下角的切换器：正在用的账号的头像，角上是平台的记号（没有人登录时只有记号；登录失效时记号上
@@ -110,7 +111,7 @@ const SwitcherPill: React.FC<SwitcherPillProps> = ({ account, onBackToPlayer }) 
         <div
             ref={setRootNode}
             data-testid="online-provider-switcher"
-            className="pointer-events-auto absolute bottom-4 right-4 z-[100] md:bottom-6 md:right-6"
+            className="login-switcher-pill pointer-events-auto absolute bottom-4 right-4 z-[100] md:bottom-6 md:right-6"
             style={{ ...settingsTokens(isDaylight, theme), ...kitMotionTokens(reduced), '--login-edge': 'var(--st-menu)' } as React.CSSProperties}
         >
             <div className="flex items-center rounded-[26px] bg-[var(--st-menu)] p-0.5 text-[color:var(--st-t1)] shadow-lg md:p-1.5">

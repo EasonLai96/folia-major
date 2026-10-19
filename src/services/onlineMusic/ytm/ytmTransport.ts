@@ -1,5 +1,6 @@
 import { OnlineProviderError } from '../../../types/onlineMusic';
 import type { ProviderErrorCode } from '../../../types/onlineMusic';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 // src/services/onlineMusic/ytm/ytmTransport.ts
 // The IPC boundary to electron/ytm/ytmApiBridge.cjs. Google credentials stay in the main process;
@@ -68,8 +69,18 @@ export type YtmWireWebLoginState =
     | { state: 'confirmed'; account: unknown }
     | { state: 'error'; message: string; code?: ProviderErrorCode; reason?: string };
 
+const hasDesktopBridge = () => typeof window !== 'undefined' && typeof window.electron?.ytmRequest === 'function';
+
+// The Android App has no desktop side: there the operations run in the page itself, as a guest
+// of YouTube Music (android/ytmAndroidBridge.ts), loaded on first use.
+const sendRequest = async (operation: YtmOperation, params: YtmParams): Promise<YtmBridgeResult> => {
+    if (hasDesktopBridge()) return window.electron!.ytmRequest(operation, params);
+    const { requestYtmOnAndroid } = await import('./android/ytmAndroidBridge');
+    return requestYtmOnAndroid(operation, params);
+};
+
 export const getYtmTransportAvailability = () => (
-    typeof window !== 'undefined' && typeof window.electron?.ytmRequest === 'function'
+    hasDesktopBridge() || isCapacitorAndroid()
         ? { configured: true } as const
         : { configured: false, reason: 'runtime-unavailable' } as const
 );
@@ -80,7 +91,7 @@ export async function requestYtm<T = unknown>(operation: YtmOperation, params: Y
     }
     const startedAt = Date.now();
     let result: YtmBridgeResult;
-    try { result = await window.electron!.ytmRequest(operation, params); }
+    try { result = await sendRequest(operation, params); }
     catch {
         console.warn(`[Ytm] ${operation} did not reach the desktop app`);
         throw new OnlineProviderError('network', 'YouTube Music desktop request failed', 'ytm');

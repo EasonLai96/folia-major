@@ -6,8 +6,8 @@ export const LOGIN_REQUEST_LIMIT_MS = 20_000;
 
 // 请求在时限内没有回答。loginFailureCase.ts 把它分成「没有回应」。
 export class LoginRequestTimeout extends Error {
-    constructor() {
-        super(`The sign-in request was not answered in ${LOGIN_REQUEST_LIMIT_MS / 1000} s`);
+    constructor(limitMs = LOGIN_REQUEST_LIMIT_MS) {
+        super(`The sign-in request was not answered in ${limitMs / 1000} s`);
         this.name = 'LoginRequestTimeout';
     }
 }
@@ -18,15 +18,16 @@ const limits = new Set<ReturnType<typeof setTimeout>>();
 /**
  * 给登录的一个请求加上时限。`run` 拿到的 signal 交给 fetch：到点时请求被中止，并以 LoginRequestTimeout
  * 失败；不认 signal 的请求（IPC）到点后只是不再等它。在时限内有了结果的，成功和失败都原样交出去。
+ * `limitMs`：平台后端本来就答得慢时由 transport 给一个更长的时限。
  */
-export const withLoginRequestLimit = <T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+export const withLoginRequestLimit = <T>(run: (signal: AbortSignal) => Promise<T>, limitMs = LOGIN_REQUEST_LIMIT_MS): Promise<T> => {
     const controller = new AbortController();
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {
             limits.delete(timer);
-            reject(new LoginRequestTimeout());
+            reject(new LoginRequestTimeout(limitMs));
             controller.abort();
-        }, LOGIN_REQUEST_LIMIT_MS);
+        }, limitMs);
         limits.add(timer);
         // `run` 当场抛错也走同一条路：以它的错失败，计时器清掉。
         new Promise<T>(settle => settle(run(controller.signal))).then(resolve, reject).finally(() => {

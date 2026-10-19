@@ -15,6 +15,7 @@ import { resetYtmRecommendations, ytmRecommendations } from './ytmRecommendation
 import { describeYtmLoginFailure, ytmLoginFailure } from './ytmLoginFailure';
 import { describeYtmFailure } from './ytmFailure';
 import i18n from '../../../i18n/config';
+import { isCapacitorAndroid } from '../../../platform/runtime';
 
 // src/services/onlineMusic/ytm/ytmProvider.ts
 // YouTube Music adapter. Sign-in is made in the person's own browser: the desktop side opens a
@@ -54,7 +55,14 @@ export const ytmProvider: OnlineMusicProvider = {
     // `recommendations` is the radio tab (ytmRecommendations.ts): a personal FM made of song
     // radios, and the playlists of the account's music page. It has no daily songs, which YouTube
     // Music has no counterpart of. Its recommendation page is the explore tab.
-    capabilities: {
+    // The Android App reads YouTube Music as a guest only (android/ytmAndroidBridge.ts): no
+    // sign-in, so nothing of an account.
+    capabilities: isCapacitorAndroid() ? {
+        search: true, playback: true, lyrics: true, wordByWordLyrics: false, auth: false,
+        userLibrary: false, playlists: true, albums: true, artists: true, userAlbums: false,
+        recommendations: false, explore: false, mutations: false, playlistTrackMutations: false, likes: false,
+        playlistSubscription: false,
+    } : {
         search: true, playback: true, lyrics: true, wordByWordLyrics: false, auth: true,
         userLibrary: true, playlists: true, albums: true, artists: true, userAlbums: true,
         recommendations: true, explore: true, mutations: true, playlistTrackMutations: true, likes: true,
