@@ -1,242 +1,183 @@
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/b5d0e863-48be-497b-b0e9-4bd8d8ce9bf0" alt="Folia" width="100%" />
-</p>
+# Folia for Android
 
-<div align="center">
-<a href="https://trendshift.io/repositories/71740?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-71740" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/71740" alt="chthollyphile%2Ffolia-major | Trendshift" width="250" height="55"/></a>
+**讓歌詞成為風景，把 Folia 的沉浸式聽歌體驗帶到手機。**
 
-# Folia
+基於 [Folia](https://github.com/chthollyphile/folia-major) 的非官方 Android 移植，使用 Capacitor 打包，提供可直接安裝的 APK，並加入系統媒體控制、手機播放條與操作手勢。
 
-Lyrics Reimagined // 辞曲新境
+不用自行部署，下載安裝即可開始體驗；也能在設定中改用自己的後端伺服器。
 
-> [!TIP]
-> **這是 Folia 的 Android App 分支。** 直接安裝的 APK、通知欄 / 鎖屏 / 超級島媒體控制、手機播放條與手勢，說明見 [Android App 說明](docs/android.md)，安裝檔在 [Releases](../../releases)。
+[下載 Android APK](https://github.com/EasonLai96/folia-major/releases) · [Android 使用說明](https://github.com/EasonLai96/folia-major/blob/android/docs/android.md) · [版本更新紀錄](https://github.com/EasonLai96/folia-major/releases) · [上游 Folia](https://github.com/chthollyphile/folia-major)
 
-[![GitHub release](https://img.shields.io/github/v/release/chthollyphile/folia-major?label=release)](https://github.com/chthollyphile/folia-major/releases)
-[![License](https://img.shields.io/github/license/chthollyphile/folia-major)](https://github.com/chthollyphile/folia-major/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/chthollyphile/folia-major?style=social)](https://github.com/chthollyphile/folia-major/stargazers)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chthollyphile/folia-major)
-[![Discord](https://img.shields.io/discord/1541051241822687232?logo=discord&logoColor=white&label=Join%20our%20Discord)](https://discord.gg/dMDBTHxeKd)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-35-orange.svg?style=flat-square)](CONTRIBUTORS.md)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-[获取方式](https://github.com/chthollyphile/folia-major#%E8%8E%B7%E5%8F%96%E6%96%B9%E5%BC%8F)
-·
-[Vercel 部署](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major)
-·
-[使用指南](https://folia-site.cielaniska.top/guide/)
-·
-[技术说明](docs/technical.md)
-
-</div>
-
-## 项目简介
-
-Folia是一个以全屏沉浸式歌词播放为核心的在线音乐播放器，支持网易云、酷狗、QQ 音乐、Navidrome 和本地音乐库，桌面端还支持波点音乐、YouTube Music 和 Spotify，通过智能歌词匹配，AI生成配色主题，以及多种全屏歌词动画为用户提供独特的听歌体验。
-
-提供基于Electron的 windows/ macOS/ Linux 桌面端版本与基于 Node.js 的 Web 版本，支持多平台部署。
-
-如果希望能够在移动设备上使用，或在浏览器上体验，可以选择[一键部署到 Vercel](https://folia-site.cielaniska.top/guide/deploy-vercel) 的 Web 版本，或自行部署到其他支持 Node.js 的平台。
-
-## 快速下载
-
-> [!TIP]
-> - **GitHub**：[Latest Release](https://github.com/chthollyphile/folia-major/releases/latest)，提供 Windows / macOS / Linux 全平台安装包。
-> - **网盘**：[夸克网盘](https://pan.quark.cn/s/6e4c6fa3bc6f) · [百度云](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia)（提取码 `flia`），适合国内网络，仅提供 Windows 与 Apple silicon 的正式版安装包。
+> **社群非官方移植・公開測試中**
 >
-> 更多获取方式（Web 部署、Docker、AUR、Flatpak）见下方 [获取方式](#获取方式)。
+> Folia 的核心播放器、歌詞動畫與視覺設計來自上游團隊，本分支主要負責 Android 整合與手機體驗調整，並非上游官方 Android 發行版。
+>
+> Android 版本的問題請回報至本倉庫，不要直接向上游回報移植版特有的問題。
 
-## 展示
+## Android 實機示範
 
-![visualizer](./img/visualizer.png)
+https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e
 
-### 演示视频
+[開啟示範影片](https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e)
 
-https://github.com/user-attachments/assets/af806cf1-f67f-4b88-b2e7-57db507e9e81
+## 為什麼做 Android 版？
 
-https://github.com/user-attachments/assets/fd27f4f0-64b9-4c57-8c3b-10df767f934b
+喜歡 Folia 的歌詞動畫，也希望在手機上直接打開就能聽。
 
-https://github.com/user-attachments/assets/704f195a-2194-434b-86e8-8f36290e5cc4
+這個分支在 Folia 原有體驗上，補上適合手機的使用方式：安裝 APK、從鎖屏控制播放、滑動切歌，以及更適合觸控的播放介面。
 
-### 部分主题预览
+**保留 Folia 的視覺魅力，讓日常聽歌更順手。**
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="./img/preview-fume.png" alt="Fume 主题预览" />
-    </td>
-    <td width="50%">
-      <img src="./img/preview-lumi.png" alt="Lumi 主题预览" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><strong>浮名</strong></td>
-    <td align="center"><strong>流光</strong></td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="./img/preview-cad.png" alt="Cad 主题预览" />
-    </td>
-    <td width="50%">
-      <img src="./img/preview-pat.png" alt="Pat 主题预览" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><strong>心象</strong></td>
-    <td align="center"><strong>云阶</strong></td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="./img/preview-cappella.jpg" alt="群唱 主题预览" />
-    </td>
-    <td width="50%">
-      <img src="./img/preview-tilt.png" alt="Tilt 主题预览" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><strong>群唱</strong></td>
-    <td align="center"><strong>倾诉</strong></td>
-  </tr>
-    <tr>
-    <td width="50%">
-      <img src="./img/preview-diorama.png" alt="镜台 主题预览" />
-    </td>
-    <td width="50%">
-      <img src="./img/preview-pendolo.png" alt="时计 主题预览" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><strong>镜台</strong></td>
-    <td align="center"><strong>时计</strong></td>
-  </tr>
-</table>
+## 手機版特色
 
-不同的歌词动画具有不同的排版氛围和可调参数，让全屏歌词拥有如同文字PV般的丰富视觉效果，同时又能兼顾响应式布局，自动适配不同窗口尺寸。
-
-## 核心能力
-
-| 模块 | 说明 |
+| 特色 | 說明 |
 | --- | --- |
-| 在线搜索与播放 | 搜索歌曲、歌手或专辑后即可播放，并自动加载相关封面与歌词。 |
-| 本地音乐支持 | 可导入本地音频文件，在本地安全保存索引信息，不上传文件内容。详细用法见 [本地音乐库管理](docs/local-library-management.md)。 |
-| 智能歌词匹配 | 本地歌曲可自动匹配在线歌词与封面，也支持手动修正匹配结果。 |
-| 本地歌词文件识别 | 自动加载同目录同名 `.lrc`、`.vtt`、`.ttml`、`.qrc`、`.yrc`、`.krc` 歌词文件，或歌词文件内嵌 LRC 歌词。适配 LDDC 生成的增强型逐字歌词格式。 |
-| Now Playing 接入 | 支持通过本机 [Now Playing](https://github.com/Widdit/now-playing-service/) 服务接入外部播放器的歌曲、时间轴与歌词信息，并驱动 Folia 的舞台视图与全屏歌词渲染。 |
-| AI 主题生成 | 基于歌曲情绪与歌词内容生成沉浸式背景与视觉参数。 |
-| 多端体验 | 提供 Web 部署方式，同时支持桌面端打包分发。 |
-| 模组系统（实验性） | 桌面版可通过 Folium 模组添加歌词动画、背景、播放页图层、命令等，并从 [模组市场](https://folium-compound.cielaniska.top) 安装官方认证的模组。详见 [模组系统](#模组系统folium-v1x)。 |
+| 直接安裝 APK | 不用自行架站，也不用先將網頁加入主畫面 |
+| 沉浸式歌詞 | 在手機上體驗 Folia 的全螢幕歌詞動畫與主題 |
+| 系統媒體控制 | 通知欄與鎖屏顯示歌曲資訊，提供播放／暫停、上一首與下一首等控制 |
+| HyperOS 超級島 | 支援相容機型的系統媒體展示，實際效果依裝置與系統版本而異 |
+| 背景播放 | 切換到其他 App 後仍可繼續播放；實際行為可能受系統省電策略影響 |
+| 迷你播放條 | 首頁與歌牆底部顯示封面、歌曲資訊與播放控制，點一下進入播放頁 |
+| 手勢切歌 | 播放頁左滑下一首、右滑上一首、下滑離開 |
+| 純畫面模式 | 輕點播放頁歌詞區域，收起進度與設定控制；再點一下恢復 |
+| 手機效能預設 | 動畫預設 30 FPS、像素比上限 2，可依裝置效能自行調整 |
+| 自訂後端 | 可在設定中改用自己的伺服器 |
 
-## 获取方式
+> 功能可能隨版本調整，請以所下載版本的 Release 說明為準。不同品牌手機的背景播放與媒體控制表現可能不同。
 
-桌面版内置前后端运行环境，适合希望即装即用的用户。
+## 下載與安裝
 
-### 一键部署
+### 系統需求
 
-如果你希望快速上线 Web 版本，请阅读 [Vercel 一键部署指南](https://folia-site.cielaniska.top/guide/deploy-vercel) 来创建项目
+- Android 7.0（API 24）以上。
+- 建議 Android 10 以上。
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major) 
+### 安裝步驟
 
-项目也支持一键部署到 Cloudflare，请参考 Vercel 的部署教程进行相应调整。
+1. 開啟 [Releases 下載頁](https://github.com/EasonLai96/folia-major/releases)。
+2. 選擇要安裝的 Android 版本，閱讀該版本的更新內容與已知問題。
+3. 展開 **Assets**，下載名稱為 `Folia-*-android-*.apk` 的檔案。
+4. 在手機上開啟 APK，依系統提示允許該來源「安裝未知應用程式」。
+5. 完成安裝後開啟 Folia。
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chthollyphile/folia-major)
+請下載 **`.apk` 安裝檔**，不是 `Source code` 原始碼壓縮檔。
 
-Vercel 与 Cloudflare 上的 QQ 音乐不再需要额外部署一个常驻 API 实例：把 `VITE_QQ_API_BASE` 填成 `/api/qq`，再配一个 `QQ_SESSION_SECRET`（服务端密钥，**不加 `VITE_` 前缀**）即可。这种形态支持微信扫码和手机 QQ 扫码登录（手机 QQ 扫码要 qq-music-api 3.3.3 或更高版本），且播放前必须先登录；Cloudflare 上可以再绑定一个 Durable Object，让 QQ 扫码改走长连接，并多一个 QQ 音乐 App 扫码。完整步骤、平台差异和排错方法见 [QQ 音乐部署指南](docs/qq-music-deployment.md)。
+### 更新提醒
 
-自托管用户可以使用 [Docker Compose 全栈部署](deploy/docker/README.md)。本地音乐目录访问依赖可信 HTTPS 安全上下文，部署文档包含 NAS 反向代理和证书要求。
+目前發布的 APK 使用 **debug 簽名**。
 
-关于移动端：
+- 簽名相同且版本符合更新條件時，可直接覆蓋安裝。
+- 未來若改用不同的正式簽名，可能需要先移除舊版。
+- 移除 App 可能清除本機資料，操作前請先備份重要設定與資料。
+- 每次更新請先閱讀對應版本的 Release 說明。
 
-目前推荐移动端用户部署 Web 版本/自托管版本之后，通过chrome for android / iOS Safari 创建 PWA应用（也就是将网页应用添加到桌面，Folia web版本支持安装为PWA应用）来使用。
+## 和網頁版／PWA 有什麼不同？
 
-有一定技术的用户可以使用 capacitor 将本项目的web版本打包成为可安装的安卓apk，具体方法可参考示范仓库：[chthollyphile/folia-sonnet](https://github.com/chthollyphile/folia-sonnet)
+Folia 原本就提供 Web 與 PWA 使用方式。本分支不是重新打造播放器，而是在既有功能上加入 Android 整合。
 
-### 直接下载
+| 項目 | 本分支提供的體驗 |
+| --- | --- |
+| 安裝入口 | 直接下載 APK 安裝 |
+| 預設後端 | 已配置公開後端，也可自行修改 |
+| 系統整合 | 透過原生媒體整合提供通知欄與鎖屏控制 |
+| 返回鍵 | 優先關閉面板或對話框；位於最外層時將 App 退到背景 |
+| 觸控操作 | 手機迷你播放條、滑動切歌與下滑離開播放頁 |
+| 介面調整 | 隱藏部分桌面專用介面，採用手機效能預設值 |
 
-- **Windows / macOS / Linux**: 最新版本的安装包请前往 [Releases 页面](https://github.com/chthollyphile/folia-major/releases/latest) 下载。
-- **Arch Linux**: 可通过 AUR 获取 [folia-major-bin](https://aur.archlinux.org/packages/folia-major-bin)。
-- **Flatpak**: 社区提供的第三方 flatpak，详情见 [Flatpark](https://flatpark.org/apps/top.izuna.foliamajor/)。
+桌面版、Web 部署與上游完整功能介紹，請參考 [原版 Folia](https://github.com/chthollyphile/folia-major)。
 
-> [!IMPORTANT]
-> 如果国内网络从 GitHub Releases 下载较慢，可以使用 [夸克网盘](https://pan.quark.cn/s/6e4c6fa3bc6f) 或 [百度云](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia) 下载。网盘链接仅提供 Windows 与 Apple silicon 的正式版安装包.
+## 音樂來源與已知限制
 
-Linux 包、Wayland / Hyprland 遥控窗和桌面端细节见 [技术与开发说明](docs/technical.md)。
+目前 Android 說明與已發布版本記錄的狀況如下：
 
-## 文档与开发
+| 來源／功能 | 狀況 |
+| --- | --- |
+| 網易雲音樂 | 已有搜尋、播放與登入的實機測試紀錄 |
+| 酷狗音樂 | 已記錄可用 |
+| QQ 音樂 | 預設公開後端目前有 501 錯誤，需要自行部署可用的 QQ 後端 |
+| 較複雜的歌詞動畫 | 可能增加耗電、發熱或造成音訊與畫面不順 |
+| 背景播放與媒體控制 | 可能受手機品牌、系統版本及省電設定影響 |
 
-更完整的使用说明请访问 [Folia Guide](https://folia-site.cielaniska.top/guide/)。
+線上音樂來源的可用性也可能隨後端服務或第三方平台變動。請以 [Android 使用說明](https://github.com/EasonLai96/folia-major/blob/android/docs/android.md) 與各版本 Release 的紀錄為準。
 
-部署、环境变量、本地开发、Stage API、常用脚本和技术栈见 [技术与开发说明](docs/technical.md)。
+若播放時不順，可以先降低動畫複雜度或幀率，再比較不同設定的表現。
 
-## 模组系统（Folium v1.x）
+## 後端與隱私
 
-> [!NOTE]
-> 模组系统是实验性功能，仅桌面版可用，默认关闭，需要在「设置 → 实验室 → 模组系统」中开启。
+App 預設連線至上游作者公開部署的後端，也支援在設定中改用自己的伺服器。
 
-Folium 是 Folia 的模组平台。模组可以添加新的歌词动画模式和背景类型、在播放页上叠加内容、给进度条加按钮和标记、注册命令与设置分区、在歌词显示前改写歌词，也可以通过 Node 入口调用 ffmpeg 等本地能力。模组以可信代码运行，每个模组在启用前都要在原生窗口中确认，文件变化后需要重新确认。
+**登入所使用的 cookie 會經過你設定的後端伺服器。** 使用預設設定時，資料會經過預設的公開後端；若希望自行掌握服務與資料流向，請使用自己信任或自行架設的後端。
 
-- **模组市场**：[folium-compound.cielaniska.top](https://folium-compound.cielaniska.top) 提供官方模组和经过审查的社区模组，下载 zip 后拖进模组面板即可安装。
-- **官方认证**：市场里的模组都带有 Folium 签名，安装后显示「官方认证」；只通过安全审查的先行测试模组显示「先行测试」；没有签名的第三方模组显示「未验证」，同样可以使用。
-- **开发与贡献**：[模组开发与贡献指南](docs/folium/contributing.md)，从写第一个模组、本地调试，到提交到模组市场、审查与签名、发布更新。
-- **API 参考**：[Folium API 参考](docs/folium/api.md)，由契约文件生成的完整接口文档，按注册表、上下文、事件、服务等分类查询。
-- **平台规范**：[Folium 规范](mods/README.md)，包括清单字段、权限、注册表语义、事件、安全模型与版本策略。
-- **示范模组**：仓库的 [`mods/`](mods/) 目录，覆盖歌词动画、调参、进度条、播放页图层与透明视频导出。
+相關部署說明：
 
-## Sync Server
+- [上游部署指南](https://folia-site.cielaniska.top/guide/)
+- [QQ 音樂部署說明](https://github.com/EasonLai96/folia-major/blob/android/docs/qq-music-deployment.md)
 
-Folia 提供了可选的官方同步服务端 `sync-server`，用于在多个设备之间同步外观设置与 AI 主题库。服务端由用户自行托管，适合希望跨设备同步配色主题的用户。
+## 回報問題與協助測試
 
-支持以下部署方式：
+歡迎協助測試不同品牌手機上的安裝、背景播放、鎖屏控制與手勢操作。
 
-- **Cloudflare Workers / D1**：免服务器运维的 Serverless 部署，推荐使用。
-  [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chthollyphile/folia-major/tree/main/sync-server)
-- **Docker**：镜像与 Compose 入口见 [Docker 部署目录](deploy/docker/README.md)。
-- **Node.js 自托管**：使用 SQLite，适合本地或不方便使用 Docker 的环境。
+請先確認使用版本與已知限制，再到 [本倉庫](https://github.com/EasonLai96/folia-major) 的 Issues 回報；若尚未開放 Issues，可先透過維護者提供的聯絡管道反映。
 
-详细的环境变量、Token 配置与部署步骤请参阅 [Sync-Server 部署指南](https://folia-site.cielaniska.top/guide/deploy-sync)。部署完成后，在 Folia 的“存储设置”中填写服务端地址和 `SYNC_TOKEN` 即可启用同步。
+為了方便重現，請盡量附上：
 
-## 本地音乐与匹配说明
+- App 版本。
+- 手機品牌與型號。
+- Android 與系統版本，例如 HyperOS。
+- 使用的音樂來源，以及是否使用自訂後端。
+- 重現步驟。
+- 預期結果與實際結果。
+- 截圖或螢幕錄影，如有。
 
-Folia 会读取音频文件元数据、同目录歌词和封面，并可通过网易云、QQ 音乐或酷狗音乐补全歌曲信息。自动匹配按网易云、QQ、酷狗依次回退；匹配不准确时，可以手动选择候选、恢复首次导入的本地信息，或进一步合并、拆分艺术家与专辑实体。
+分享畫面或日誌前，請先遮蔽帳號、cookie、token 等敏感資訊。
 
-完整的导入、重扫、匹配、实体编辑、歌单、缓存和故障排查说明见 [本地音乐库管理](docs/local-library-management.md)。
+**即使只是回報「這台手機可以正常使用」，也能幫助建立裝置相容性紀錄。**
 
-## Community
+## 自行建置
 
-加入discord社群，共同交流，获得帮助
+本分支的 Android 開發入口為 `android` 分支。
 
-[![Discord](https://img.shields.io/discord/1541051241822687232?logo=discord&logoColor=white&label=Join%20our%20Discord)](https://discord.gg/dMDBTHxeKd)
+### 環境需求
 
-## 贡献者
+- Node.js 24
+- JDK 21
+- Android SDK，包含 build-tools 36
 
-感谢所有为本项目进行 Issue 提交、Bug 报告、想法建议、测试与代码编写的贡献者，均依据 all-contributors 规范进行统计
+### 建置指令
 
-由于列表过长，贡献记录请见 [贡献者名单](CONTRIBUTORS.md)。
+```bash
+git clone --branch android https://github.com/EasonLai96/folia-major.git
+cd folia-major
 
-## 法律与免责声明
+npm ci
+npm run build:android:debug
+```
 
-本项目在 AI 的广泛协助下开发，因此仍可能存在细微或不易察觉的问题。若给你带来不便，敬请理解。
+APK 產物位置：
 
-本项目主要用于展示播放动效、界面设计与相关工程实现。应用中涉及的在线音乐流媒体、歌词、专辑封面及其他内容，其版权均归对应权利人所有。
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-本仓库及其源代码仅供个人学习、技术交流与非营利测试使用。请勿将其用于商业盈利用途。若因对在线资源的传播、加工或再分发而引发版权纠纷或其他责任，均由使用者自行承担，项目开发者不承担相关责任。
+Android 預設後端由 `.env.android` 配置。更多建置細節與注意事項，請見 [Android 開發說明](https://github.com/EasonLai96/folia-major/blob/android/docs/android.md)。
 
-请始终尊重数字版权，并在条件允许时通过官方平台支持正版音乐。
+## 上游與致謝
 
-## 致谢
+本專案基於 [chthollyphile/folia-major](https://github.com/chthollyphile/folia-major)。
 
-特别感谢以下项目和资源：
+感謝上游作者與所有貢獻者打造 Folia 的播放器、歌詞動畫、主題與音樂整合功能。本分支主要新增 Android 外殼、原生媒體整合及手機介面調整，並不代表上述核心功能由本分支獨立開發。
 
-- [chenmozhijin/LDDC](https://github.com/chenmozhijin/LDDC)
-- [NeteaseCloudMusicApiEnhanced](https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced)
-- [chenglou/pretext](https://github.com/chenglou/pretext)
-- [MakcRe/KuGouMusicApi](https://github.com/MakcRe/KuGouMusicApi)
-- [paper-design/shaders](https://github.com/paper-design/shaders)
-- [yakult-green-tea/qq-music-api](https://github.com/yakult-green-tea/qq-music-api)
+- [上游原始碼](https://github.com/chthollyphile/folia-major)
+- [上游使用指南](https://folia-site.cielaniska.top/guide/)
+- [貢獻者名單](https://github.com/EasonLai96/folia-major/blob/android/CONTRIBUTORS.md)
+- [上游完整介紹與致謝](https://github.com/chthollyphile/folia-major#readme)
 
-本项目接入了 [Apple Music-like Lyrics TTML 逐词歌词库](https://github.com/amll-dev/amll-ttml-db) 以提供高质量的歌词文件，感谢此歌词库的作者和贡献者们。
+## 授權與內容權利
 
-## 许可证
+本分支沿用上游的 **AGPL-3.0** 授權，詳細條款請參閱 [LICENSE](https://github.com/EasonLai96/folia-major/blob/android/LICENSE)。
 
-本项目基于 `AGPL-3.0` 许可证开源。
+音樂、歌詞、專輯封面等第三方內容的權利屬於各自權利人；程式碼授權不代表取得這些內容的使用或散布權利。
+
+---
+
+如果這個 Android 移植對你有幫助，歡迎給本倉庫一顆 Star、分享使用心得，也別忘了支持 [原版 Folia](https://github.com/chthollyphile/folia-major)。
