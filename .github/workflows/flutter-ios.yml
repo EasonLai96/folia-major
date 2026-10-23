@@ -1,0 +1,56 @@
+# flutter_app/（原生 Flutter 重寫）的 iOS 建置：手動觸發、macOS runner、產出未簽署 IPA artifact。
+# 本檔案沒有 push / pull_request 觸發器，不會因提交而帶動既有 Android／發布相關 workflow。
+name: Flutter iOS Build
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    name: Build unsigned iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: flutter_app
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      # Flutter 版本釘死在 3.47.7（stable channel），Dart 版本由該版 SDK 決定。
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Flutter analyze
+        run: flutter analyze
+
+      - name: Flutter test
+        run: flutter test
+
+      # 不簽署建置；簽章由使用者端（如 SideStore）自行處理。
+      - name: Build iOS (release, no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Pack unsigned IPA
+        run: |
+          PACKAGE_DIR="$(mktemp -d "$RUNNER_TEMP/folia-package.XXXXXX")"
+          mkdir "$PACKAGE_DIR/Payload"
+          cp -R "$GITHUB_WORKSPACE/flutter_app/build/ios/iphoneos/Runner.app" "$PACKAGE_DIR/Payload/"
+          cd "$PACKAGE_DIR"
+          zip -qry "$RUNNER_TEMP/folia-ios-unsigned.ipa" Payload
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: folia-ios-unsigned
+          path: ${{ runner.temp }}/folia-ios-unsigned.ipa
+          if-no-files-found: error
