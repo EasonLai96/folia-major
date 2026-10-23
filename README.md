@@ -16,7 +16,7 @@
 
 ## Android 實機示範
 
-https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e
+
 
 [開啟示範影片](https://github.com/user-attachments/assets/837bfb7b-f100-4ef3-838f-d15b7276831e)
 
