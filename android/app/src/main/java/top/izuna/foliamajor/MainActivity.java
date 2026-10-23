@@ -1,11 +1,14 @@
 package top.izuna.foliamajor;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -14,16 +17,24 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.PluginHandle;
 
 public class MainActivity extends BridgeActivity {
 
     private static final int NOTIFICATION_PERMISSION_REQUEST = 1001;
 
+    // YouTube Music 登录屏用 androidx 的 Activity Result API 回传：注册要在 STARTED 之前，
+    // 结果按resultCode+data 交给插件自己派话。
+    private ActivityResultLauncher<Intent> ytmSignInLauncher;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // 插件要在 bridge 初始化（super.onCreate）之前登记，load() 里的广播接收器才会注册上。
         registerPlugin(FoliaDevicePlugin.class);
+        registerPlugin(FoliaQishuiPlugin.class);
+        registerPlugin(FoliaYtmPlugin.class);
         super.onCreate(savedInstanceState);
+        attachYtmSignInLauncher();
         // 整个应用沉浸：从屏幕边缘滑出的状态栏、导航条只临时浮出来，过几秒自己收回；
         // 默认行为是滑一下就一直留着，沉浸效果也就没了。
         WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
@@ -81,5 +92,22 @@ public class MainActivity extends BridgeActivity {
             // 子视图（WebView）不再收到这些边距，页面里的 env(safe-area-inset-*) 为 0，不会重复留边。
             return WindowInsetsCompat.CONSUMED;
         });
+    }
+
+    /** 给 YouTube Music 登录屏（FoliaYtm 插件）注册一个 Activity Result 通道，把结果递给插件。 */
+    private void attachYtmSignInLauncher() {
+        ytmSignInLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                PluginHandle handle = getBridge().getPlugin("FoliaYtm");
+                if (handle != null && handle.getInstance() instanceof FoliaYtmPlugin) {
+                    ((FoliaYtmPlugin) handle.getInstance())
+                        .onSignInActivityResult(result.getResultCode(), result.getData());
+                }
+            });
+        PluginHandle ytm = getBridge().getPlugin("FoliaYtm");
+        if (ytm != null && ytm.getInstance() instanceof FoliaYtmPlugin) {
+            ((FoliaYtmPlugin) ytm.getInstance()).attachSignInLauncher(ytmSignInLauncher);
+        }
     }
 }

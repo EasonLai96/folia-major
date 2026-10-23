@@ -1,5 +1,5 @@
 import type { OnlineLibraryProvider, ProviderCollection } from '../../../types/onlineMusic';
-import { createYtmPager, normalizeYtmCollection } from './ytmNormalize';
+import { createYtmPager, normalizeYtmCollection, normalizeYtmSong } from './ytmNormalize';
 import { requestYtm } from './ytmTransport';
 import type { YtmOperation, YtmWireCollection, YtmWirePage, YtmWirePlaylistPage, YtmWireSong } from './ytmTransport';
 
@@ -24,6 +24,16 @@ const libraryPage = (operation: YtmOperation, type: string, limit: number, offse
 );
 
 export const ytmLibrary: OnlineLibraryProvider = {
+    async getListeningHistory(cursor) {
+        const page = await requestYtm<YtmWirePage<YtmWireSong>>('account_history', { continuation: cursor });
+        if (!page || !Array.isArray(page.items)) {
+            throw new Error('Invalid YouTube Music history response');
+        }
+        return {
+            items: page.items.map(normalizeYtmSong),
+            ...(page.continuation ? { nextCursor: page.continuation } : {}),
+        };
+    },
     getUserPlaylists: (_userId, limit, offset) => libraryPage('user_playlists', 'playlist', limit, offset),
     // The id of every liked song, which is what shows a song's heart as full.
     async getLikedSongIds() {

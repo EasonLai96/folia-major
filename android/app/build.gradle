@@ -4,10 +4,11 @@ android {
     namespace = "top.izuna.foliamajor"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "top.izuna.foliamajor"
+        // Optional isolated emulator package; default keeps the existing installed-app identity.
+        applicationId project.findProperty('foliaTestApplicationId') ?: "top.izuna.foliamajor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 22
+        versionCode 23
         versionName "0.7.20"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

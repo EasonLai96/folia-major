@@ -8,6 +8,7 @@ import { qqProvider } from './qq/qqProvider';
 import { bodianProvider } from './bodian/bodianProvider';
 import { ytmProvider } from './ytm/ytmProvider';
 import { spotifyProvider } from './spotify/spotifyProvider';
+import { qishuiProvider } from './qishui/qishuiProvider';
 
 // src/services/onlineMusic/providerRegistry.ts
 
@@ -110,3 +111,4 @@ registerOnlineMusicProvider(qqProvider);
 registerOnlineMusicProvider(bodianProvider);
 registerOnlineMusicProvider(ytmProvider);
 registerOnlineMusicProvider(spotifyProvider);
+registerOnlineMusicProvider(qishuiProvider);

@@ -1,6 +1,7 @@
 
 
 export default {
+  "qishui": { "recentPlayed": "汽水账号最近播放", "recommended": "为你推荐" },
   "libraryBravais": {
     "suiteName": "Bravais 墙面",
     "homeTitle": "书库",
@@ -1417,7 +1418,12 @@ export default {
     "loginTitleQq": "扫码登录QQ音乐",
     "loginTitleBodian": "使用波点音乐 App 扫码",
     "loginNoteBodian": "打开波点音乐 App 扫描二维码并确认登录",
+    "loginTitleQishui": "使用抖音登录汽水音乐",
+    "loginNoteQishui": "使用抖音 App 扫码并确认授权。登录凭据由 Android Keystore 加密保存，重启后重新验证；退出登录会清除本机凭据。",
+    "loginNoteYtmAndroid": "在登录窗口中登录 Google 后点击完成。Android 上的 YouTube Music 必须登录，不提供访客模式。Google 可能拒绝嵌入式浏览器。",
     "loginTitleYtm": "登录 YouTube Music",
+    "ytmSignInCancel": "取消",
+    "ytmSignInDone": "完成",
     "loginNoteYtmBrowser": "会打开一个单独的浏览器窗口。在里面登录 Google，看到 YouTube Music 显示你的账号后，关掉那个窗口。",
     "loginNoteYtmBrowserMac": "会打开一个单独的浏览器窗口。在里面登录 Google，看到 YouTube Music 显示你的账号后，退出那个浏览器（⌘Q）。",
     "loginNoBrowserYtm": "登录 YouTube Music 需要安装 Chrome、Edge、Chromium 或 Brave。",
@@ -1581,8 +1587,11 @@ export default {
     "exploreCompilation": "合辑",
     "explorePlaylist": "歌单",
     "exploreMix": "动态歌单",
-    "exploreRecent": "最近播放",
+    "exploreRecent": "Folia 本机最近播放",
     "exploreAgain": "再听一次",
+    "exploreHistory": "账号历史（只读）",
+    "exploreHistoryEmpty": "账号里还没有听歌记录",
+    "exploreHistoryFailed": "账号听歌记录没有读到",
     "exploreSimilar": "与《{{name}}》相似",
     "neteaseDailyPlaylists": "每日推荐歌单",
     "neteaseCharts": "排行榜",

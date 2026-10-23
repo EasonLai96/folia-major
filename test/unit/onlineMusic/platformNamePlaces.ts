@@ -21,7 +21,7 @@ export const PLACE_KINDS = {
 export type PlaceKind = keyof typeof PLACE_KINDS;
 
 export interface PlatformNamePlace {
-    n: Partial<Record<'netease' | 'qq' | 'kugou' | 'bodian' | 'ytm' | 'spotify', number>>;
+    n: Partial<Record<'netease' | 'qq' | 'kugou' | 'bodian' | 'ytm' | 'spotify' | 'qishui', number>>;
     // The kind of the file's lines of code; its comment lines are counted as comments.
     kind: PlaceKind;
     // What the lines are, where the kind alone does not say it.
@@ -99,7 +99,7 @@ export const PLATFORM_NAME_PLACES: Record<string, PlatformNamePlace> = {
     'src/services/onlineMusic/loginSelfCheck.ts': { n: { netease: 1 }, kind: 'doc' },
     'src/services/onlineMusic/omni.ts': { n: { netease: 5, kugou: 2 }, kind: 'doc' },
     'src/services/onlineMusic/providerAccountCache.ts': { n: { kugou: 1 }, kind: 'doc' },
-    'src/services/onlineMusic/providerRegistry.ts': { n: { netease: 2, qq: 2, kugou: 2, bodian: 2, ytm: 2, spotify: 4 }, kind: 'list' },
+    'src/services/onlineMusic/providerRegistry.ts': { n: { netease: 2, qq: 2, kugou: 2, bodian: 2, ytm: 2, spotify: 4, qishui: 2 }, kind: 'list' },
     'src/services/onlineMusic/qq/qqProvider.ts': { n: { kugou: 1 }, kind: 'doc' },
     'src/services/onlineMusic/qq/qqTransport.ts': { n: { netease: 1 }, kind: 'doc' },
     'src/services/onlineMusic/resourceCache.ts': { n: { netease: 2 }, kind: 'doc' },

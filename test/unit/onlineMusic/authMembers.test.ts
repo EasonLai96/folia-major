@@ -28,6 +28,10 @@ const AUTH_MEMBERS: Record<string, string[]> = {
         'cancelLogin', 'checkLogin', 'describeLoginFailure', 'getLoginStatus', 'getLoginTexts', 'getLoginTtlMs', 'logout', 'openLoginPage',
         'startLogin',
     ],
+    qishui: [
+        'cancelLogin', 'checkLogin', 'createQr', 'describeLoginFailure', 'getLoginDiagnostics', 'getLoginStatus', 'getLoginTexts',
+        'getLoginTtlMs', 'logout', 'signInRanOut', 'startLogin',
+    ],
     ytm: [
         'cancelLogin', 'checkLogin', 'describeLoginFailure', 'getLoginStatus', 'getLoginTexts', 'getLoginTtlMs', 'logout', 'openLoginPage',
         'opensLoginPageItself', 'signInRanOut', 'startLogin',

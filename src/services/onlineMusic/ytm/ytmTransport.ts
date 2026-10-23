@@ -10,7 +10,7 @@ export type YtmOperation =
     | 'login_status' | 'logout'
     | 'web_login_start' | 'web_login_check' | 'web_login_cancel' | 'web_login_open'
     | 'search_songs' | 'song_detail' | 'song_detail_en' | 'song_detail_zh' | 'lyrics' | 'album' | 'artist' | 'playlist' | 'public_playlist' | 'user_playlists' | 'user_albums' | 'audio'
-    | 'explore' | 'mix' | 'playlist_edit' | 'list_save' | 'list_saved' | 'song_like';
+    | 'explore' | 'mix' | 'playlist_edit' | 'list_save' | 'list_saved' | 'song_like' | 'account_history';
 export type YtmParams = Record<string, string | undefined>;
 // `reason`: the desktop side's own word for why a sign-in failed, where it has one.
 export type YtmBridgeResult =
@@ -71,8 +71,8 @@ export type YtmWireWebLoginState =
 
 const hasDesktopBridge = () => typeof window !== 'undefined' && typeof window.electron?.ytmRequest === 'function';
 
-// The Android App has no desktop side: there the operations run in the page itself, as a guest
-// of YouTube Music (android/ytmAndroidBridge.ts), loaded on first use.
+// The Android App has no desktop side: there the operations run in the page itself, through the
+// native sign-in gate (android/ytmAndroidBridge.ts), loaded on first use.
 const sendRequest = async (operation: YtmOperation, params: YtmParams): Promise<YtmBridgeResult> => {
     if (hasDesktopBridge()) return window.electron!.ytmRequest(operation, params);
     const { requestYtmOnAndroid } = await import('./android/ytmAndroidBridge');

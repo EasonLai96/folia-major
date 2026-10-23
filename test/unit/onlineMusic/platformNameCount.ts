@@ -32,6 +32,7 @@ export const PLATFORM_NAMES = {
     bodian: /bodian|波点/i,
     ytm: /ytm|youtube/i,
     spotify: /spotify/i,
+    qishui: /qishui|汽水/i,
 } as const;
 
 export type CountedPlatform = keyof typeof PLATFORM_NAMES;
@@ -47,7 +48,7 @@ const DOCUMENT = /\.md$/;
 // Never read: it holds no platform rule of ours and must not be opened.
 const SKIPPED_FILE = /^electron\/ytm\/poToken\.cjs$/;
 // Letters of other things that happen to spell a platform's name.
-const NOT_A_NAME = /MmLlHhVvCcSsQqTtAaZz|'quanqiu', 'qq'/g;
+const NOT_A_NAME = /MmLlHhVvCcSsQqTtAaZz|'quanqiu', 'qq'|汽水味|橘子汽水/g;
 const COMMENT_LINE = /^\s*(\/\/|\/?\*|\{\/\*)/;
 
 export interface FileCount {

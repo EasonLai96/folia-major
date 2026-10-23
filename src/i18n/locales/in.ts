@@ -1,6 +1,7 @@
 
 
 export default {
+  "qishui": { "recentPlayed": "Baru diputar di Qishui", "recommended": "Direkomendasikan untuk Anda" },
   "libraryBravais": {
     "suiteName": "Dinding Bravais",
     "homeTitle": "Pustaka",
@@ -1417,7 +1418,12 @@ export default {
     "loginTitleQq": "Pindai untuk masuk ke QQ Music",
     "loginTitleBodian": "Pindai dengan Bodian Music",
     "loginNoteBodian": "Pindai kode ini dengan aplikasi Bodian Music dan konfirmasi masuk",
+    "loginTitleQishui": "Masuk ke Qishui Music dengan Douyin",
+    "loginNoteQishui": "Pindai dengan Douyin dan konfirmasikan izin. Kredensial disimpan terenkripsi dengan Android Keystore, divalidasi lagi setelah mulai ulang, dan dihapus secara lokal saat keluar.",
+    "loginNoteYtmAndroid": "Masuk ke Google di jendela masuk, lalu ketuk Selesai. YouTube Music di Android memerlukan akun; mode tamu tidak tersedia. Google mungkin menolak browser tertanam.",
     "loginTitleYtm": "Masuk ke YouTube Music",
+    "ytmSignInCancel": "Batal",
+    "ytmSignInDone": "Selesai",
     "loginNoteYtmBrowser": "Jendela browser terpisah akan terbuka. Masuk ke Google di sana, lalu tutup jendela itu setelah YouTube Music menampilkan akun Anda.",
     "loginNoteYtmBrowserMac": "Jendela browser terpisah akan terbuka. Masuk ke Google di sana, lalu keluar dari browser itu (⌘Q) setelah YouTube Music menampilkan akun Anda.",
     "loginNoBrowserYtm": "Masuk ke YouTube Music memerlukan Chrome, Edge, Chromium, atau Brave yang terpasang.",
@@ -1581,8 +1587,11 @@ export default {
     "exploreCompilation": "Kompilasi",
     "explorePlaylist": "Playlist",
     "exploreMix": "Mix",
-    "exploreRecent": "Baru diputar",
+    "exploreRecent": "Baru diputar di Folia pada perangkat ini",
     "exploreAgain": "Putar lagi",
+    "exploreHistory": "Riwayat akun (hanya baca)",
+    "exploreHistoryEmpty": "Belum ada riwayat dengar di akun ini",
+    "exploreHistoryFailed": "Riwayat akun tidak dapat dibaca",
     "exploreSimilar": "Mirip dengan {{name}}",
     "neteaseDailyPlaylists": "Playlist harian untuk Anda",
     "neteaseCharts": "Tangga lagu",

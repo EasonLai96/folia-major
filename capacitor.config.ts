@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
     appName: 'Folia',
     webDir: 'dist',
     backgroundColor: '#09090b',
+    // Capacitor's debug bridge/cookie logger prints raw payloads, including credentials.
+    // Keep redacted application diagnostics instead, even in preview APKs.
+    loggingBehavior: 'none',
     server: {
         androidScheme: 'https',
         hostname: 'localhost',

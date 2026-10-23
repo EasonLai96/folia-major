@@ -15,6 +15,7 @@ import type {
     OmniProviderCapabilities,
     OmniProviderId,
     OmniProviderSummary,
+    OmniListeningHistoryPage,
     OmniSongAvailability,
     OmniSongReplacement,
     OmniUser,
@@ -780,11 +781,36 @@ export const omni = {
     // The active provider's own recommendation page; `cursor` asks for its further sections, and
     // `listened` (see `OnlineExploreProvider`) goes with a read from the start.
     async getExploreFeed(cursor?: string, listened?: UnifiedSong[]): Promise<OmniExplorePage> {
-        return withActiveProvider(async provider => provider.explore?.getFeed(cursor, listened) ?? { sections: [] });
+        return withActiveProvider(async provider => providerSupports(provider, 'explore')
+            ? provider.explore?.getFeed(cursor, listened) ?? { sections: [] }
+            : { sections: [] });
     },
 
     async getExploreSectionItems(cursor: string): Promise<OmniExploreItemsPage> {
         return withActiveProvider(async provider => provider.explore?.getSectionItems?.(cursor) ?? { items: [] });
+    },
+
+    // Whether a provider reads its account's listening history: only one that says so and wires
+    // the read is asked (`OmniPage` of it below). This is not the recommendation history
+    // (`recommendations.getHistory*`): that one is a history of daily recommendation playlists,
+    // this one is the platform's own record of what its account played.
+    supportsListeningHistory(providerId: OmniProviderId): boolean {
+        const provider = getOnlineMusicProvider(providerId);
+        return providerSupports(provider, 'listeningHistory') && typeof provider?.library?.getListeningHistory === 'function';
+    },
+
+    // A page of the active provider's account listening history, from its first one or from what
+    // follows the cursor of an earlier page. The read is void where the active provider changed
+    // while it was out (withActiveProvider); a provider the facade said nothing of answers
+    // `unsupported`, and UIs ask only through `supportsListeningHistory` first.
+    async getListeningHistory(cursor?: string): Promise<OmniListeningHistoryPage> {
+        return withActiveProvider(async provider => {
+            const library = provider.library;
+            if (!providerSupports(provider, 'listeningHistory') || typeof library?.getListeningHistory !== 'function') {
+                return unsupported(provider.id, 'listening-history');
+            }
+            return library.getListeningHistory(cursor);
+        });
     },
 
     async getSongDetail(providerId: OmniProviderId, id: MediaId): Promise<UnifiedSong | null> {

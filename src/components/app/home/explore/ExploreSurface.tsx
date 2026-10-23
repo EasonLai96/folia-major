@@ -8,6 +8,7 @@ import { exploreScroll, useExploreFeedStore } from '../../../../stores/useExplor
 import { ExploreLight } from './ExploreLight';
 import { EXPLORE_PILL, EXPLORE_TOKENS, ExploreSections } from './ExploreSections';
 import { useExploreTilt } from './exploreTilt';
+import { AccountHistorySection } from './AccountHistorySection';
 import { OWN_SECTION_IDS, listenedSongsOf, useOwnExploreSections } from './ownSections';
 
 // src/components/app/home/explore/ExploreSurface.tsx
@@ -168,12 +169,16 @@ export const ExploreSurface: React.FC<ExploreSurfaceProps> = ({ providerId, acco
             >
                 <div className="mx-auto w-full max-w-7xl px-4 pb-12 pt-2 md:px-8">
                     {sections.length === 0 ? (
-                        // No section to show: the state of the provider's page stands alone.
-                        isLoading ? (
-                            <div className="flex justify-center py-24" aria-busy="true"><Loader2 size={28} className="animate-spin opacity-30" /></div>
-                        ) : feed.status === 'error' ? failed : (
-                            <div className="flex justify-center py-24 text-sm text-[color:var(--ex-soft)]">{t('home.exploreEmpty')}</div>
-                        )
+                        // No section to show: the state of the provider's page stands alone, and the
+                        // account's history under it, where this provider keeps one.
+                        <>
+                            {isLoading ? (
+                                <div className="flex justify-center py-24" aria-busy="true"><Loader2 size={28} className="animate-spin opacity-30" /></div>
+                            ) : feed.status === 'error' ? failed : (
+                                <div className="flex justify-center py-24 text-sm text-[color:var(--ex-soft)]">{t('home.exploreEmpty')}</div>
+                            )}
+                            <AccountHistorySection providerId={providerId} accountId={accountId} onPlaySong={onPlaySong} />
+                        </>
                     ) : (
                         <>
                             <ExploreSections
@@ -189,6 +194,10 @@ export const ExploreSurface: React.FC<ExploreSurfaceProps> = ({ providerId, acco
                                 // Room for the control that stands over this corner of the list.
                                 pageControls={hasRefresh ? <span data-explore-controls-room aria-hidden className="h-8 w-8 shrink-0" /> : undefined}
                             />
+                            {/* The account's listening history, its own section and not the app's own
+                                one of what was played here (see AccountHistorySection.tsx). It is its
+                                own read, and it stands after the sections of the page. */}
+                            <AccountHistorySection providerId={providerId} accountId={accountId} onPlaySong={onPlaySong} />
                             {/* Under the sections, the state of the provider's page: what the app keeps itself is shown through all of it. */}
                             {isLoading ? (
                                 <div className={END} aria-busy="true"><Loader2 size={20} className="animate-spin opacity-30" /></div>

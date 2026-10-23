@@ -39,6 +39,7 @@ describe('what each platform declares for the sign-in window', () => {
             kugou: { letter: 'K', color: '#2563eb' },
             qq: { letter: 'Q', color: '#16a34a' },
             bodian: { letter: '波', color: '#0d9488' },
+            qishui: { letter: '汽', color: '#19a58c' },
             ytm: { letter: 'Y', color: '#e11d48' },
             spotify: { letter: 'S', color: '#22c55e' },
         });
@@ -55,6 +56,7 @@ describe('what each platform declares for the sign-in window', () => {
             kugou: { title: 'home.loginTitleKugou', note: 'home.loginNoteKugou' },
             qq: { title: 'home.loginTitleQq', note: 'home.loginNoteQq' },
             bodian: { title: 'home.loginTitleBodian', note: 'home.loginNoteBodian' },
+            qishui: { title: 'home.loginTitleQishui', note: 'home.loginNoteQishui' },
             // The test runs where no browser tells the system: the note is the one for Windows and Linux.
             ytm: { title: 'home.loginTitleYtm', note: 'home.loginNoteYtmBrowser' },
             spotify: { title: 'home.loginTitleSpotify', note: 'home.loginNoteSpotify' },

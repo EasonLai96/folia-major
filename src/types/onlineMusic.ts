@@ -57,6 +57,8 @@ export interface ProviderCapabilities {
     playbackReports?: boolean;
     /** The provider has a recommendation page of its own, read through `explore`. */
     explore?: boolean;
+    /** The provider reads its account's listening history (`library.getListeningHistory`). */
+    listeningHistory?: boolean;
 }
 
 export interface ProviderAvailability {
@@ -554,6 +556,18 @@ export interface ProviderLikedSongIds {
     whole: boolean;
 }
 
+/**
+ * One page of the platform's own record of what the signed-in account played ("history", "listen
+ * again" and the like in its own apps). `nextCursor` stands only for what follows the entries
+ * read here, and the next page is asked with it as it is: it is not a byte count, a place in the
+ * list, or anything else the adapter has to explain again (its own read does the explaining).
+ */
+export interface ProviderListeningHistoryPage {
+    items: UnifiedSong[];
+    /** Present when the history has further entries; handed back to `getListeningHistory` as it came. */
+    nextCursor?: string;
+}
+
 export interface OnlineLibraryProvider {
     getUserPlaylists(userId: MediaId, limit: number, offset: number): Promise<ProviderPage<ProviderCollection>>;
     /**
@@ -581,6 +595,14 @@ export interface OnlineLibraryProvider {
     getUserAlbums?(userId: MediaId, limit: number, offset: number): Promise<ProviderPage<ProviderCollection>>;
     /** The entry that stands for the account's cloud songs among its collections; null where it has none to show. */
     getCloudCollection?(user?: ProviderUser): Promise<ProviderCollection | null>;
+    /**
+     * The platform's own record of what its account played, read page by page from the first one
+     * (no `cursor`) or from what follows the `nextCursor` of an earlier page. Only read where the
+     * adapter says it has it (`capabilities.listeningHistory`): asked without one, the facade
+     * refuses. It is the account's history, and this is a read and nothing else: it is never
+     * written to by playing a song or by any other use of the app; entries are never asked out.
+     */
+    getListeningHistory?(cursor?: string): Promise<ProviderListeningHistoryPage>;
 }
 
 export interface OnlineCatalogProvider {
@@ -779,4 +801,5 @@ export type OmniExploreItem = ProviderExploreItem;
 export type OmniExploreSection = ProviderExploreSection;
 export type OmniExplorePage = ProviderExplorePage;
 export type OmniExploreItemsPage = ProviderExploreItemsPage;
+export type OmniListeningHistoryPage = ProviderListeningHistoryPage;
 export { OnlineProviderError as OmniError };

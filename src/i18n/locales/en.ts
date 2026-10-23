@@ -1,6 +1,7 @@
 
 
 export default {
+  "qishui": { "recentPlayed": "Recently played on Qishui", "recommended": "Recommended for you" },
   "libraryBravais": {
     "suiteName": "Bravais wall",
     "homeTitle": "Library",
@@ -1417,7 +1418,12 @@ export default {
     "loginTitleQq": "Scan to sign in to QQ Music",
     "loginTitleBodian": "Scan with Bodian Music",
     "loginNoteBodian": "Scan this code with the Bodian Music app and confirm sign-in",
+    "loginTitleQishui": "Sign in to Qishui Music with Douyin",
+    "loginNoteQishui": "Scan with Douyin and confirm authorization. Android Keystore encrypts saved credentials; they are revalidated after restart and erased locally on sign-out.",
+    "loginNoteYtmAndroid": "Sign in to Google in the sign-in window, then tap Done. YouTube Music requires sign-in on Android. Google may reject embedded browsers; guest mode is not available.",
     "loginTitleYtm": "Sign in to YouTube Music",
+    "ytmSignInCancel": "Cancel",
+    "ytmSignInDone": "Done",
     "loginNoteYtmBrowser": "A separate browser window opens. Sign in to Google there, and close that window once YouTube Music shows your account.",
     "loginNoteYtmBrowserMac": "A separate browser window opens. Sign in to Google there, and quit that browser (⌘Q) once YouTube Music shows your account.",
     "loginNoBrowserYtm": "Signing in to YouTube Music needs Chrome, Edge, Chromium or Brave installed.",
@@ -1581,8 +1587,11 @@ export default {
     "exploreCompilation": "Compilation",
     "explorePlaylist": "Playlist",
     "exploreMix": "Mix",
-    "exploreRecent": "Recently played",
+    "exploreRecent": "Recently played in Folia on this device",
     "exploreAgain": "Play again",
+    "exploreHistory": "Account history (read-only)",
+    "exploreHistoryEmpty": "The account has no listening history here",
+    "exploreHistoryFailed": "The account's history could not be read",
     "exploreSimilar": "Similar to {{name}}",
     "neteaseDailyPlaylists": "Daily playlists for you",
     "neteaseCharts": "Charts",

@@ -34,6 +34,14 @@
 
         </activity>
 
+        <!-- YouTube Music 登录屏：只从应用内（FoliaYtm 插件）起，不对外。 -->
+        <activity
+            android:name=".YtmSignInActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:windowSoftInputMode="adjustResize" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

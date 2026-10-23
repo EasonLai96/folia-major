@@ -154,7 +154,9 @@ describe('QR login diagnostic report', () => {
                     connections: [connectionSaying],
                 }),
             };
-            const declaring = listOnlineMusicProviders().filter(provider => provider.auth?.getLoginDiagnostics).map(provider => provider.id);
+            // The Android-only native provider has no main-process/network trace; its diagnostic
+            // contract is deliberately limited to safe stage/code fields (checked separately below).
+            const declaring = listOnlineMusicProviders().filter(provider => provider.auth?.getLoginDiagnostics && provider.id !== 'qishui').map(provider => provider.id);
             expect(Object.keys(builders).sort()).toEqual(declaring.sort());
             for (const [providerId, build] of Object.entries(builders)) {
                 const report = reportOf(build());
@@ -166,6 +168,13 @@ describe('QR login diagnostic report', () => {
             }
             expect(reportOf(builders.netease())).toContain("network interfaces: Zhang San's iPhone: 203.0.113.9");
             expect(reportOf(builders.qq())).toContain('      at QrLoginService.poll (qq-music-api/dist/src/services/auth/qrLogin.node.js:185:23)');
+        });
+
+        it('has a separate native diagnostics contract with no account or credential trace', async () => {
+            const native = listOnlineMusicProviders().find(provider => provider.id === 'qishui');
+            expect(native?.auth?.getLoginDiagnostics).toBeTypeOf('function');
+            // No attempted native login in this runtime: there is no invented main-process trace.
+            expect(await native!.auth!.getLoginDiagnostics!()).toEqual([]);
         });
 
         it('keeps a long list of network interfaces whole, a start-up error of several lines on its line, and a kernel release readable', () => {
