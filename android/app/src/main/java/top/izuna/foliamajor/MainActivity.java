@@ -21,6 +21,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // 插件要在 bridge 初始化（super.onCreate）之前登记，load() 里的广播接收器才会注册上。
+        registerPlugin(FoliaDevicePlugin.class);
         super.onCreate(savedInstanceState);
         // 整个应用沉浸：从屏幕边缘滑出的状态栏、导航条只临时浮出来，过几秒自己收回；
         // 默认行为是滑一下就一直留着，沉浸效果也就没了。

@@ -5,6 +5,9 @@ import { Style, StatusBar } from '@capacitor/status-bar';
 import { isCapacitorAndroid } from '../platform/runtime';
 import { useAppViewStore } from '../stores/useAppViewStore';
 import { useLibraryHomeSurfaceStore } from '../library/core/home/useLibraryHomeSurfaceStore';
+import { usePlaybackStore } from '../stores/usePlaybackStore';
+import { PlayerState } from '../types';
+import { getAndroidDevice, shouldKeepPlayerScreenOn } from '../platform/androidDevice';
 
 // src/hooks/useCapacitorShell.ts
 // Android App 的外壳：系统栏跟随明暗主题；返回键先当作 Esc 关掉面前的弹层，什么都没关掉时
@@ -45,6 +48,34 @@ const returnToFirstHomeTab = (): boolean => {
 };
 
 export const useCapacitorShell = (isDaylight: boolean, viewKey = ''): void => {
+    useEffect(() => {
+        const device = getAndroidDevice();
+        if (!device) return;
+        let previous: boolean | undefined;
+        const update = () => {
+            const enabled = shouldKeepPlayerScreenOn(
+                useAppViewStore.getState().view,
+                usePlaybackStore.getState().playerState === PlayerState.PLAYING,
+                document.visibilityState === 'visible',
+            );
+            if (previous === enabled) return;
+            previous = enabled;
+            void device.setKeepScreenOn({ enabled })
+                .catch(error => console.warn('[AndroidDevice] Screen policy failed', error));
+        };
+        const stopPlayback = usePlaybackStore.subscribe(update);
+        const stopView = useAppViewStore.subscribe(update);
+        document.addEventListener('visibilitychange', update);
+        update();
+        return () => {
+            stopPlayback();
+            stopView();
+            document.removeEventListener('visibilitychange', update);
+            void device.setKeepScreenOn({ enabled: false })
+                .catch(error => console.warn('[AndroidDevice] Screen release failed', error));
+        };
+    }, []);
+
     useEffect(() => {
         if (!isCapacitorAndroid()) return;
         document.documentElement.dataset.runtime = 'capacitor-android';

@@ -11,10 +11,15 @@ const plugin = vi.hoisted(() => ({
     setPositionState: vi.fn(async () => {}),
 }));
 const http = vi.hoisted(() => ({ get: vi.fn() }));
+const device = vi.hoisted(() => ({
+    setPlaybackState: vi.fn(async (_state: { playing: boolean }) => {}),
+    addListener: vi.fn(async (_event: string, _callback: (event: { reason: string }) => void) => ({ remove: vi.fn(async () => {}) })),
+}));
 
 vi.mock('@capgo/capacitor-media-session', () => ({ MediaSession: plugin }));
 vi.mock('@capacitor/core', () => ({
     CapacitorHttp: http,
+    registerPlugin: () => device,
     Capacitor: { isNativePlatform: () => true, getPlatform: () => 'android' },
 }));
 // 没有渲染器，按挂载的样子把每个 effect 跑一次。
@@ -39,6 +44,8 @@ beforeEach(() => {
     plugin.setMetadata.mockClear();
     plugin.setActionHandler.mockClear();
     http.get.mockReset();
+    device.addListener.mockClear();
+    device.setPlaybackState.mockClear();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'info').mockImplementation(() => {});
 });
@@ -64,6 +71,43 @@ describe('native media session artwork', () => {
 
         expect(plugin.setMetadata).toHaveBeenCalledTimes(1);
         expect(artworkOf(plugin.setMetadata.mock.calls[0])).toEqual([{ src: CLEARED_ARTWORK_SRC }]);
+    });
+});
+
+describe('Android headphone transport integration', () => {
+    it('routes unplug to the existing pause action and respects control gating', async () => {
+        const pause = vi.fn();
+        const disabled = { current: false };
+        const session = getFoliaMediaSession()!;
+        session.playbackState = 'playing';
+        useMediaSessionBridge({
+            audioRef: { current: {} as HTMLAudioElement },
+            audioSrc: null,
+            currentSong: null,
+            cachedCoverUrl: null,
+            playerState: PlayerState.PLAYING,
+            isNowPlayingStageActive: false,
+            unknownArtistLabel: '',
+            mediaSessionPlayRef: { current: async () => {} },
+            mediaSessionPauseRef: { current: pause },
+            mediaSessionPrevRef: { current: () => {} },
+            mediaSessionNextRef: { current: () => {} },
+            isNowPlayingControlDisabledRef: disabled,
+        });
+        await flush();
+        // No song is mounted in this isolated fixture; emulate the active media session before unplug.
+        session.playbackState = 'playing';
+        expect(device.setPlaybackState).toHaveBeenCalledWith({ playing: true });
+        const notify = device.addListener.mock.calls[0][1];
+        notify({ reason: 'headphones-disconnected' });
+        expect(pause).toHaveBeenCalledOnce();
+        disabled.current = true;
+        notify({ reason: 'headphones-disconnected' });
+        disabled.current = false;
+        session.playbackState = 'paused';
+        notify({ reason: 'headphones-disconnected' });
+        expect(pause).toHaveBeenCalledOnce();
+        cleanups.splice(0).forEach(cleanup => cleanup());
     });
 });
 

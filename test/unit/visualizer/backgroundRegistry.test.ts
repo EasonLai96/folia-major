@@ -1,4 +1,9 @@
+import React from 'react';
+import { motionValue } from 'framer-motion';
 import { describe, expect, it, vi } from 'vitest';
+import FluidBackground from '@/components/visualizer/backgrounds/common/FluidBackground';
+import UrlBackgroundLayer from '@/components/visualizer/backgrounds/url/UrlBackgroundLayer';
+import type { VisualizerBackgroundRenderProps } from '@/components/visualizer/backgrounds/definition';
 import {
     DEFAULT_VISUALIZER_BACKGROUND_MODE,
     VISUALIZER_BACKGROUND_REGISTRY,
@@ -35,6 +40,35 @@ describe('visualizer background registry', () => {
         expect(hasVisualizerBackgroundMode('latent')).toBe(true);
         expect(hasVisualizerBackgroundMode('missing-mode')).toBe(false);
         expect(getVisualizerBackgroundRegistryEntry('missing-mode').mode).toBe('latent');
+    });
+
+    it('uses local cover colours for empty, stale or invalid embedded selections', () => {
+        const base = {
+            theme: { backgroundColor: '#111', primaryColor: '#fff', secondaryColor: '#888' },
+            coverUrl: 'https://example.com/cover.jpg',
+            audioPower: motionValue(0),
+            audioBands: {},
+            isDaylight: false,
+            staticMode: false,
+            paused: true,
+        } as VisualizerBackgroundRenderProps;
+        const items = [{ id: 'page', url: 'https://example.com', note: 'Page' }];
+        for (const url of [
+            undefined,
+            { items: [], selectedId: null },
+            { items, selectedId: 'deleted' },
+            { items: [{ id: 'page', url: 'javascript:alert(1)', note: '' }], selectedId: 'page' },
+        ]) {
+            const props = { ...base, config: { mode: 'url' as const, url } };
+            const result = getVisualizerBackgroundRegistryEntry('url').render(props) as React.ReactElement;
+            expect(result.type).toBe(FluidBackground);
+            expect(result.props).toMatchObject({ coverUrl: base.coverUrl, theme: base.theme });
+            expect(props.config.url).toBe(url);
+        }
+        const result = getVisualizerBackgroundRegistryEntry('url').render({
+            ...base, config: { mode: 'url', url: { items, selectedId: 'page' } },
+        }) as React.ReactElement;
+        expect(result.type).toBe(UrlBackgroundLayer);
     });
 
     it('uses label fallback when translation is missing', () => {

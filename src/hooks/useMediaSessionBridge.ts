@@ -9,6 +9,7 @@ import {
     publishMediaSessionTrack,
 } from '../utils/mediaSessionSync';
 import { createFoliaMediaMetadata, getFoliaMediaSession, isNativeMediaSession } from '../platform/nativeMediaSession';
+import { bindHeadphonePause, getAndroidDevice } from '../platform/androidDevice';
 
 // Bridges Folia playback state to the browser Media Session API.
 type UseMediaSessionBridgeOptions = {
@@ -54,6 +55,20 @@ export const useMediaSessionBridge = ({
     mediaSessionSeekRef,
     isNowPlayingControlDisabledRef,
 }: UseMediaSessionBridgeOptions) => {
+    useEffect(() => bindHeadphonePause(
+        () => {
+            if (!isNowPlayingControlDisabledRef.current && audioRef.current) mediaSessionPauseRef.current();
+        },
+        () => getFoliaMediaSession()?.playbackState === 'playing',
+    ), [audioRef, mediaSessionPauseRef, isNowPlayingControlDisabledRef]);
+
+    useEffect(() => {
+        const device = getAndroidDevice();
+        if (!device) return;
+        void device.setPlaybackState({ playing: playerState === PlayerState.PLAYING && !isNowPlayingStageActive })
+            .catch(error => console.warn('[AndroidDevice] Playback safety state failed', error));
+    }, [playerState, isNowPlayingStageActive]);
+
     useEffect(() => {
         // Android App 是原生替身（通知栏、锁屏、灵动岛），其他环境是 navigator.mediaSession。
         const mediaSession = getFoliaMediaSession();
