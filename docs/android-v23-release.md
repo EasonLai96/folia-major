@@ -1,4 +1,4 @@
-# Android v23：登入整合測試版與手機正式建置
+# Android v23：登入整合、原簽章覆蓋更新與建置
 
 日期：2026-10-24。Android versionCode **23**；versionName／桌面 package 版本保持 **0.7.20**。這是 Android 獨立版本線，不觸發桌面或 Docker 發佈。
 
@@ -12,22 +12,25 @@
 
 ## 下載與簽章：先分清兩種 APK
 
-**這次 GitHub Pre-release 只附隔離測試版，不是原 App 的正式覆蓋更新。**
+**一般更新請下載 `Folia-0.7.20-android-v23.apk`。** 使用者已安全提供原簽章私鑰；比對 v22 憑證完全一致後，完成原包名 APK 簽署。原包名更新已在新建、無使用者資料的雷電實例通過 v22 → v23 `install -r`，設定、本機歷史與 IndexedDB fixture 保留。Release 仍維持公開測試 Pre-release，不代表所有裝置或平台能力已驗收。
 
-| 類型 | 隔離測試版（本次提供） | 手機原金鑰建置版（另行產出） |
+| 類型 | 原包名更新（一般下載） | 隔離測試版（另附） |
 | --- | --- | --- |
-| 套件 ID | `top.izuna.foliamajor.authpreview` | `top.izuna.foliamajor` |
-| 用途 | 與舊 App 並存，測試登入整合 | 保留資料覆蓋 v22／相容舊版 |
-| 簽章 | 電腦測試環境 debug key | 必須是原 v22 私鑰，不能新建 |
-| 資料 | 獨立資料，不自動繼承舊 App | 同包名＋同簽章才能保留資料更新 |
+| 檔名 | `Folia-0.7.20-android-v23.apk` | `Folia-0.7.20-android-v23-authpreview.apk` |
+| 套件 ID | `top.izuna.foliamajor` | `top.izuna.foliamajor.authpreview` |
+| 用途 | 保留資料覆蓋 v22／同簽章相容舊版 | 與舊 App 並存，測試登入整合 |
+| 簽章 | 與原 v22 相同的 debug key | 電腦測試環境另一把 debug key |
+| 資料 | 同包名＋同簽章保留舊資料 | 獨立資料，不自動繼承舊 App |
 
-測試版 APK：`Folia-0.7.20-android-v23-authpreview.apk`，由 [android-v23 Release](https://github.com/EasonLai96/folia-major/releases/tag/android-v23) 下載。隔離版不會替換原 App；帳戶需重新登入。安裝檔不含測試帳戶、Cookie 或 ticket。
+由 [android-v23 Release](https://github.com/EasonLai96/folia-major/releases/tag/android-v23) 下載。安裝檔不含測試帳戶、Cookie、ticket 或簽署私鑰。
 
-- APK SHA-256：`c3f079078d6df71a357bad115ad924f56c4aded1e21d1af94254ffd23a16c5e9`。
-- 測試簽署憑證 SHA-256：`9a2650c42071eef64f8a6a2e0d38a7197e3efb30256f85a2f9f67e4af2577d5f`；**不是 v22 原簽章**。
-- 已安裝到雷電的 authpreview，versionCode 23；原 App 仍為 versionCode 21、lastUpdateTime 2026-10-23 19:40:21，未覆蓋或清資料。
+- 原包名 APK SHA-256：`117aff2d892f6cbf0bd4f31cfdf3accc6b2f5439dbc4a5b1d1f6741d2ce5de7a`。
+- 原包名憑證 SHA-256：`3e136205734f0143a086f82445300da7a9222acb22b1ce95a02842e836b8d75c`，與 v22 完全一致。
+- 隔離 APK SHA-256：`c3f079078d6df71a357bad115ad924f56c4aded1e21d1af94254ffd23a16c5e9`。
+- 隔離憑證 SHA-256：`9a2650c42071eef64f8a6a2e0d38a7197e3efb30256f85a2f9f67e4af2577d5f`，**不能覆蓋原 App**。
+- 原雷電實例的使用者舊 App 仍為 versionCode 21、lastUpdateTime 2026-10-23 19:40:21，未覆蓋或清資料；覆蓋測試只在新實例進行。詳見 [升級驗證](android-v23-upgrade-validation.md)。
 
-**若安裝提示簽章不符，不要卸載或清資料。** 原 v22 簽章留在手機建置環境；這台電腦的測試簽章不同，不能拿隔離版改個檔名就當正式更新。
+**若安裝提示簽章不符，不要卸載或清資料。** 不同來源 APK 可能使用其他簽章，應先核對；不能拿隔離版改個檔名就當原包名更新。
 
 ## 手機：用原金鑰建置可覆蓋更新版本
 
@@ -93,7 +96,7 @@ sha256sum android/app/build/outputs/apk/debug/app-debug.apk
 - 覆蓋安裝後檢查舊設定、本機歷史／曲庫仍保留。
 - 驗證登入、強制停止後恢復、實際播放、登出與重新啟動不復活。
 - 發佈時附上正式 APK 的新 SHA-256、憑證一致證據及手機驗收結果；不能沿用隔離測試 APK 的雜湊。
-- 本次 Release 先維持 Pre-release。原金鑰手機建置與覆蓋安裝未完成前，不宣稱已提供正式更新。
+- 原簽章覆蓋 APK 已完成簽署及獨立雷電升級驗證，現在可由本次 Release 取得；使用者自己的手機覆蓋與全功能驗收尚待完成，因此仍維持 Pre-release。原碼 tag `android-v23` 不移動；後續簽章／升級文件以 `android` 分支與 Release 說明更新。
 
 ## 已驗證與尚未驗證
 
@@ -106,4 +109,4 @@ V22 基底整合版已在雷電 Android 14 使用真帳戶通過：YTM 登入／
 - 汽水長時間真續期、會員／地區、全部歌詞與主動寫操作未逐項驗收；Google 可拒絕特定帳戶的嵌入瀏覽器登入。
 - YTM WebView 使用 Android CookieManager；自訂 Keystore session 不代表整個 WebView Cookie 資料庫也加密。Capacitor 全域 CookieHandler 可能自動附加同站 Cookie，不宣稱公開音訊／BotGuard transport 完全無 Cookie。
 
-完整記錄：[真帳戶驗證與安全邊界](android-v22-validation.md)、[移植差異比較](android-auth-port-comparison.md)、[汽水來源與 MIT notice](qishui-android-port.md)。
+完整記錄：[原簽章覆蓋升級驗證](android-v23-upgrade-validation.md)、[真帳戶驗證與安全邊界](android-v22-validation.md)、[移植差異比較](android-auth-port-comparison.md)、[汽水來源與 MIT notice](qishui-android-port.md)。

@@ -9,7 +9,8 @@
 
 到本倉庫的 [Releases](../../releases) 下載 `Folia-*-android-*.apk`，在手機上打開安裝即可（需要允許「安裝未知應用程式」）。
 
-- 一般套件名稱：`top.izuna.foliamajor`；v23 Release 附的隔離測試 APK 為 `top.izuna.foliamajor.authpreview`，與舊版並存、不共享資料。
+- 一般更新下載 `Folia-0.7.20-android-v23.apk`：`top.izuna.foliamajor`、原 v22 簽章，可覆蓋相容舊版；已在新雷電實例驗證保留資料升級。
+- 名稱帶 `authpreview` 的 APK 是另外的隔離測試版：`top.izuna.foliamajor.authpreview`，只能並存、不共享舊 App 資料。
 - 最低需求：Android 7.0（API 24）以上，建議 Android 10 以上。
 - 目前為 debug 簽名。簽名不符時不要解除安裝／清資料；須在保有原金鑰的環境建置，才能保留資料覆蓋更新。見 [v23 發佈與手機建置](android-v23-release.md)。
 
@@ -33,12 +34,12 @@
 - 以上需要安裝含 `FoliaDevice` 插件的新 APK，舊版不會僅因修改前端原始碼而取得原生功能。
 - 開源版本比較、來源與未實作範圍見 [Android 功能對照](android-feature-comparison.md)。使用者已確認 v22 安裝及耳機斷開自動暫停；常亮超過系統鎖屏時間的實機驗證留待稍後，不能以單元測試代替。
 
-## v23 登入整合隔離測試版（2026-10-24）
+## v23 登入整合公開測試更新（2026-10-24）
 
 - Android YTM 改為必須登入；保留 V22 音訊／poToken 與正規化。Keystore 保存已驗證會話，冷啟動重新確認帳戶，登出清除密文、密鑰與 Google／YouTube Cookie。
 - 探索頁分開顯示帳戶歷史（遠端唯讀）與 Folia 本機播放紀錄，不自動新增或刪除遠端歷史。
 - 汽水加入 Android 原生掃碼協議與 Keystore 儲存；使用者親自掃碼後，真帳戶冷啟動、曲庫、單首非試聽音訊及登出已通過雷電隔離測試。
-- v23 隔離版套件為 `top.izuna.foliamajor.authpreview`，versionCode 23、versionName 0.7.20。GitHub 以 Pre-release 發佈；原金鑰在手機上，正式覆蓋 APK 另由該環境建置，不在這次 Release 中冒充提供。
+- v23 原包名更新與隔離版均為 versionCode 23、versionName 0.7.20。原簽章金鑰已由使用者安全提供並核對一致，GitHub 同時提供原包名更新 APK 與隔離 APK，仍維持 Pre-release。詳見 [簽章與覆蓋驗證](android-v23-upgrade-validation.md)。
 - 實測結果、未通過測試、安全邊界與安裝檔見 [Android V22 驗證紀錄](android-v22-validation.md)；汽水來源與 MIT notice 見 [汽水移植說明](qishui-android-port.md)。
 
 ## 目前已知狀況
@@ -75,7 +76,7 @@ npm run build:android:debug
 
 ## 版本紀錄
 
-- **v23（隔離測試版）**：汽水／YTM 登入與 Keystore 持久化、冷啟動驗證及登出清除；YTM 移除訪客模式，遠端唯讀歷史與本機紀錄分開，保留 V22 音訊／poToken；隱藏首頁橫向捲動條而保留滑動。見 [完整說明](android-v23-release.md)。
+- **v23（公開測試更新）**：汽水／YTM 登入與 Keystore 持久化、冷啟動驗證及登出清除；YTM 移除訪客模式，遠端唯讀歷史與本機紀錄分開，保留 V22 音訊／poToken；隱藏首頁橫向捲動條而保留滑動。見 [完整說明](android-v23-release.md)。
 - **v9**：修正「全部清空」會刪掉本地曲庫的手工整理（現在只清快取）；同步視覺設定時兩邊都改過會先詢問，不再用雲端舊設定覆蓋本地；通知欄 / 鎖屏可以拖動進度；切到沒有封面的歌時不再殘留上一首的封面。
 - **v14**：播放頁沉浸式，收起狀態列和導航條、畫面鋪滿整個螢幕（含鏡頭挖孔那一條），從邊緣往內滑可暫時叫出；其他頁面照常顯示。音訊改用較大的緩衝，減少播放頁特效重時的斷續、嘶嘶聲。（v10～v13 是實機調整用的過渡版，沒有發布。）
 - **v15**：探索拼貼在手機上不畫全螢幕顆粒紋理，甩動時不再掉到 20 多幀（實測從約 50 回到約 115 幀）。

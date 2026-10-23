@@ -66,8 +66,9 @@
 
 - 新增 Android 汽水／YouTube Music 登入、Keystore 加密會話與冷啟動驗證；YTM 改為必須登入，保留既有音訊／poToken 路線。
 - YouTube 帳戶歷史唯讀，與 Folia 本機播放紀錄分開；首頁歌單隱藏捲動條但保留橫向滑動。
-- **本次 Release 的 APK 是隔離測試版**（`top.izuna.foliamajor.authpreview`），與原 App 並存，不是可覆蓋舊版的正式更新。原簽章保留在手機建置環境，正式覆蓋版須由該環境另行建置。
-- [v23 下載與手機正式建置說明](docs/android-v23-release.md) · [真帳戶驗證與限制](docs/android-v22-validation.md) · [移植差異](docs/android-auth-port-comparison.md)
+- **一般更新請下載 `Folia-0.7.20-android-v23.apk`**：原包名 `top.izuna.foliamajor`、原 v22 簽章，已在獨立雷電實例通過 v22 → v23 保留資料覆蓋安裝。Release 仍標示公開測試，未宣稱所有裝置已驗收。
+- `Folia-0.7.20-android-v23-authpreview.apk` 是另附的隔離測試版（`top.izuna.foliamajor.authpreview`），只能並存，不能替換原 App。
+- [v23 下載與建置說明](docs/android-v23-release.md) · [覆蓋升級驗證](docs/android-v23-upgrade-validation.md) · [真帳戶驗證與限制](docs/android-v22-validation.md) · [移植差異](docs/android-auth-port-comparison.md)
 
 ### 更新提醒
 
